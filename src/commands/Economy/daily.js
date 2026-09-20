@@ -15,7 +15,7 @@ const PREMIUM_BONUS_PERCENTAGE = 0.1;
 export default {
     data: new SlashCommandBuilder()
         .setName('daily')
-        .setDescription('Claim your daily cash reward'),
+        .setDescription('Recompensa diaria en efectivo'),
 
     execute: withErrorHandling(async (interaction, config, client) => {
         const deferred = await InteractionHelper.safeDefer(interaction);
@@ -33,7 +33,7 @@ export default {
                 throw createError(
                     "Failed to load economy data for daily",
                     ErrorTypes.DATABASE,
-                    "Failed to load your economy data. Please try again later.",
+                    "No se pudieron cargar tus datos de economia Intentalo de nuevo mas tarde",
                     { userId, guildId }
                 );
             }
@@ -45,7 +45,7 @@ export default {
                 throw createError(
                     "Daily cooldown active",
                     ErrorTypes.RATE_LIMIT,
-                    `You need to wait before claiming daily again. Try again in **${formatDuration(timeRemaining)}**.`,
+                    `Debes esperar antes de reclamar de nuevo Intentalo en **${formatDuration(timeRemaining)}**`,
                     { timeRemaining, cooldownType: 'daily' }
                 );
             }
@@ -66,7 +66,7 @@ export default {
                     DAILY_AMOUNT * PREMIUM_BONUS_PERCENTAGE,
                 );
                 earned += bonusAmount;
-                bonusMessage = `\n✨ **Premium Bonus:** +$${bonusAmount.toLocaleString()}`;
+                bonusMessage = `\n✨ **Bono Premium:** +$${bonusAmount.toLocaleString()}`;
                 hasPremiumRole = true;
             }
 
@@ -85,18 +85,18 @@ export default {
             });
 
             const embed = successEmbed(
-                "✅ Daily Claimed!",
-                `You have claimed your daily **$${earned.toLocaleString()}**!${bonusMessage}`
+                "✅ Recompensa diaria reclamada",
+                `Has reclamado tu recompensa diaria de **$${earned.toLocaleString()}**${bonusMessage}`
             )
                 .addFields({
-                    name: "New Cash Balance",
+                    name: "Nuevo saldo en efectivo",
                     value: `$${userData.wallet.toLocaleString()}`,
                     inline: true,
                 })
                 .setFooter({
                     text: hasPremiumRole
-                        ? `Next claim in 24 hours. (Premium Active)`
-                        : `Next claim in 24 hours.`,
+                        ? `Siguiente reclamo en 24 horas (Premium Activo)`
+                        : `Siguiente reclamo en 24 horas`,
                 });
 
             await InteractionHelper.safeEditReply(interaction, { embeds: [embed] });
