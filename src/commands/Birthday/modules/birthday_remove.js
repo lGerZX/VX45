@@ -11,7 +11,7 @@ export default {
 
         const result = await deleteBirthday(client, guildId, userId);
 
-        if (result.status === 'not_found') {
+        if (result.status === 'no encontrado') {
             const embed = new EmbedBuilder()
                 .setColor(0xFF0000)
                 .setTitle('No se encontro ningún cumpleaños')
