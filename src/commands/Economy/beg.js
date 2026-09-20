@@ -70,7 +70,7 @@ export default {
                 ];
 
                 replyEmbed = successEmbed(
-                    'Limosna exitosa',
+                    'Un exitoso',
                     successMessages[
                         Math.floor(Math.random() * successMessages.length)
                     ]
@@ -84,7 +84,7 @@ export default {
                 ];
 
                 replyEmbed = warningEmbed(
-                    'Limosna fallida',
+                    'Un fracasado',
                     failMessages[Math.floor(Math.random() * failMessages.length)]
                 );
             }
