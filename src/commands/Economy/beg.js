@@ -46,7 +46,7 @@ export default {
                 throw createError(
                     "Beg cooldown active",
                     ErrorTypes.RATE_LIMIT,
-                    `Joder tio calmado shh **${timeMessage}**`,
+                    `Joder tio calmado shh espera **${timeMessage}**`,
                     { remainingTime, minutes, seconds, cooldownType: 'beg' }
                 );
             }
