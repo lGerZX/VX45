@@ -13,8 +13,8 @@ export default {
         if (next5.length === 0) {
             const embed = new EmbedBuilder()
                 .setColor(0xFF0000)
-                .setTitle('No Birthdays Found')
-                .setDescription('No birthdays have been set up in this server yet. Use `/birthday set` to add birthdays!');
+                .setTitle('No se encontraron cumpleaños')
+                .setDescription('Aun no se han configurado cumpleaños en este servidor. Usa `/birthday set` para añadir cumpleaños');
             return await InteractionHelper.safeEditReply(interaction, {
                 embeds: [embed]
             });
@@ -31,9 +31,9 @@ export default {
 
             let timeUntil = '';
             if (birthday.daysUntil === 0) {
-                timeUntil = '🎉 **Today!**';
+                timeUntil = '🎉 **Hoy**';
             } else if (birthday.daysUntil === 1) {
-                timeUntil = '📅 **Tomorrow!**';
+                timeUntil = '📅 **Mañana**';
             } else {
                 timeUntil = `In ${birthday.daysUntil} day${birthday.daysUntil > 1 ? 's' : ''}`;
             }
@@ -42,14 +42,14 @@ export default {
         if (displayIndex === 0) {
             const embed = new EmbedBuilder()
                 .setColor(0xFF0000)
-                .setTitle('No Upcoming Birthdays')
-                .setDescription('No upcoming birthdays found for current server members.');
+                .setTitle('Sin proximos cumpleaños')
+                .setDescription('No se encontraron proximos cumpleaños de los miembros actuales del servidor');
             return await InteractionHelper.safeEditReply(interaction, {
                 embeds: [embed]
             });
         }
 
-        let birthdayList = `🎂 **Next 5 Upcoming Birthdays**\n\nHere are the next 5 birthdays in ${interaction.guild.name}:\n\n`;
+        let birthdayList = `🎂 **Próximos 5 cumpleaños**\n\nAquí están los próximos 5 cumpleaños en ${interaction.guild.name}:\n\n`;
         displayIndex = 0;
         for (const birthday of next5) {
             const member = await interaction.guild.members.fetch(birthday.userId).catch(() => null);
@@ -60,28 +60,28 @@ export default {
 
             let timeUntil = '';
             if (birthday.daysUntil === 0) {
-                timeUntil = '🎉 **Today!**';
+                timeUntil = '🎉 **Hoy**';
             } else if (birthday.daysUntil === 1) {
-                timeUntil = '📅 **Tomorrow!**';
+                timeUntil = '📅 **Mañana**';
             } else {
                 timeUntil = `In ${birthday.daysUntil} day${birthday.daysUntil > 1 ? 's' : ''}`;
             }
 
-            birthdayList += `${displayIndex}. **${member.displayName}**\n<@${birthday.userId}>\n📅 **Date:** ${birthday.monthName} ${birthday.day}\n⏰ **Time:** ${timeUntil}\n\n`;
+            birthdayList += `${displayIndex}. **${member.displayName}**\n<@${birthday.userId}>\n📅 **Fecha:** ${birthday.monthName} ${birthday.day}\n⏰ **Tiempo:** ${timeUntil}\n\n`;
         }
 
-        birthdayList += `Use /birthday set to add your birthday!`;
+        birthdayList += `Usa /birthday set para añadir tu cumpleaños`;
 
         const embed = new EmbedBuilder()
             .setColor(0x00FF00)
-            .setTitle('Next 5 Upcoming Birthdays')
+            .setTitle('Proximos 5 cumpleaños')
             .setDescription(birthdayList);
 
         await InteractionHelper.safeEditReply(interaction, {
             embeds: [embed]
         });
 
-        logger.info('Next birthdays retrieved successfully', {
+        logger.info('Proximos cumpleaños recuperados con exito', {
             userId: interaction.user.id,
             guildId: interaction.guildId,
             upcomingCount: displayIndex,
