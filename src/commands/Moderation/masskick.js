@@ -9,16 +9,16 @@ import { InteractionHelper } from '../../utils/interactionHelper.js';
 export default {
     data: new SlashCommandBuilder()
         .setName("masskick")
-        .setDescription("Kick multiple users from the server at once")
+        .setDescription("Expulsa a multiples usuarios del servidor a la vez")
         .addStringOption(option =>
             option
                 .setName("users")
-                .setDescription("User IDs or mentions to kick (separated by spaces or commas)")
+                .setDescription("IDs o menciones de usuarios a expulsar separados por espacios o comas")
                 .setRequired(true)
         )
         .addStringOption(option =>
             option.setName("reason")
-                .setDescription("Reason for the mass kick")
+                .setDescription("Razon para la expulsion masiva")
                 .setRequired(false)
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers),
@@ -37,7 +37,7 @@ export default {
         }
 
         const usersInput = interaction.options.getString("users");
-        const reason = interaction.options.getString("reason") || "Mass kick - No reason provided";
+        const reason = interaction.options.getString("reason") || "Expulsion masiva - Razon no proporcionada";
 
         try {
             const userIds = usersInput
@@ -47,15 +47,15 @@ export default {
 .slice(0, 20);
 
             if (userIds.length === 0) {
-                return await replyUserError(interaction, { type: ErrorTypes.VALIDATION, message: 'Please provide valid user IDs or mentions. Maximum 20 users at once.' });
+                return await replyUserError(interaction, { type: ErrorTypes.VALIDATION, message: 'Por favor proporciona IDs o menciones de usuario validas Maximo 20 usuarios a la vez' });
             }
 
             if (userIds.includes(interaction.user.id)) {
-                return await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: 'You cannot include yourself in a mass kick.' });
+                return await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: 'No puedes incluirte a ti mismo en una expulsion masiva' });
             }
 
             if (userIds.includes(client.user.id)) {
-                return await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: 'You cannot include the bot in a mass kick.' });
+                return await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: 'No puedes incluir al bot en una expulsion masiva' });
             }
 
             const results = {
@@ -69,7 +69,7 @@ export default {
                     const member = await interaction.guild.members.fetch(userId).catch(() => null);
                     
                     if (!member) {
-                        results.failed.push({ userId, reason: "User not in server" });
+                        results.failed.push({ userId, reason: "Usuario no esta en el servidor" });
                         continue;
                     }
 
@@ -97,7 +97,7 @@ export default {
                         results.skipped.push({
                             user: member.user.tag,
                             userId,
-                            reason: 'Target has Admin or a managed role, or bot lacks Kick Members',
+                            reason: 'El objetivo tiene permisos de Administrador o un rol superior o el bot carece de permisos para expulsar miembros',
                         });
                         continue;
                     }
@@ -113,10 +113,10 @@ export default {
                         client,
                         guild: interaction.guild,
                         event: {
-                            action: "Member Kicked",
+                            action: "Miembro Expulsado",
                             target: `${member.user.tag} (${member.user.id})`,
                             executor: `${interaction.user.tag} (${interaction.user.id})`,
-                            reason: `${reason} (Mass Kick)`,
+                            reason: `${reason} (Expulsion Masiva)`,
                             metadata: {
                                 userId: member.user.id,
                                 moderatorId: interaction.user.id,
@@ -129,7 +129,7 @@ export default {
                     logger.error(`Failed to kick user ${userId}:`, error);
                     const reason = error instanceof TitanBotError
                         ? (error.userMessage || error.message)
-                        : (error.message || "Unknown error");
+                        : (error.message || "Razon desconocida");
                     results.failed.push({ 
                         userId, 
                         reason,
@@ -137,10 +137,10 @@ export default {
                 }
             }
 
-            let description = `**Mass Kick Results:**\n\n`;
+            let description = `**Resultados de la Expulsion Masiva:**\n\n`;
             
             if (results.successful.length > 0) {
-                description += `✅ **Successfully Kicked (${results.successful.length}):**\n`;
+                description += `✅ **Expulsados con exito (${results.successful.length}):**\n`;
                 results.successful.forEach(result => {
                     description += `• ${result.user} (${result.userId})\n`;
                 });
@@ -148,7 +148,7 @@ export default {
             }
 
             if (results.skipped.length > 0) {
-                description += `⚠️ **Skipped (${results.skipped.length}):**\n`;
+                description += `⚠️ **Omitidos (${results.skipped.length}):**\n`;
                 results.skipped.forEach(result => {
                     description += `• ${result.user} - ${result.reason}\n`;
                 });
@@ -156,7 +156,7 @@ export default {
             }
 
             if (results.failed.length > 0) {
-                description += `❌ **Failed (${results.failed.length}):**\n`;
+                description += `❌ **Fallidos (${results.failed.length}):**\n`;
                 results.failed.forEach(result => {
                     description += `• ${result.userId} - ${result.reason}\n`;
                 });
@@ -167,7 +167,7 @@ export default {
             return await InteractionHelper.safeEditReply(interaction, {
                 embeds: [
                     embed(
-                        `👢 Mass Kick Completed`,
+                        `👢 Expulsion Masiva Completada`,
                         description
                     )
                 ]
@@ -175,7 +175,7 @@ export default {
 
         } catch (error) {
             logger.error("Error in masskick command:", error);
-            return await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: 'An error occurred while processing the mass kick. Please try again later.' });
+            return await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: 'Ocurrio un error al procesar la expulsion masiva Por favor intenta de nuevo mas tarde' });
         }
     }
 };
