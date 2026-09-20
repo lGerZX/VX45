@@ -15,8 +15,8 @@ export default {
         if (sortedBirthdays.length === 0) {
             const embed = new EmbedBuilder()
                 .setColor(0xFF0000)
-                .setTitle('No Birthdays')
-                .setDescription('No birthdays have been set in this server yet.');
+                .setTitle('Sin cumpleaños')
+                .setDescription('Aun no se han establecido cumpleaños en este servidor');
             return await InteractionHelper.safeEditReply(interaction, {
                 embeds: [embed]
             });
@@ -47,8 +47,8 @@ export default {
         if (displayIndex === 0) {
             const embed = new EmbedBuilder()
                 .setColor(0xFF0000)
-                .setTitle('No Birthdays')
-                .setDescription('No birthdays have been set by current server members.');
+                .setTitle('Sin cumpleaños')
+                .setDescription('Los miembros actuales del servidor no han establecido ninguna fecha de cumpleaños');
             return await InteractionHelper.safeEditReply(interaction, {
                 embeds: [embed]
             });
@@ -58,14 +58,14 @@ export default {
 
         const embed = new EmbedBuilder()
             .setColor(0x00FF00)
-            .setTitle('Server Birthdays')
+            .setTitle('Cumpleaños del servidor')
             .setDescription(`${birthdayList}\n\nTotal: ${displayIndex} birthday${displayIndex !== 1 ? 's' : ''}`);
 
         await InteractionHelper.safeEditReply(interaction, {
             embeds: [embed]
         });
 
-        logger.info('Birthday list retrieved successfully', {
+        logger.info('Lista de cumpleaños recuperada', {
             userId: interaction.user.id,
             guildId,
             birthdayCount: displayIndex,
