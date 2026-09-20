@@ -9,7 +9,7 @@ import { InteractionHelper } from '../../utils/interactionHelper.js';
 export default {
     data: new SlashCommandBuilder()
         .setName("massban")
-        .setDescription("Banea a múltiples usuarios del servidor a la vez")
+        .setDescription("Banea a multiples usuarios del servidor a la vez")
         .addStringOption(option =>
             option
                 .setName("users")
@@ -18,13 +18,13 @@ export default {
         )
         .addStringOption(option =>
             option.setName("reason")
-                .setDescription("Razón para el baneo masivo")
+                .setDescription("Razon para el baneo masivo")
                 .setRequired(false)
         )
         .addIntegerOption(option =>
             option
                 .setName("delete_days")
-                .setDescription("Número de días de mensajes a eliminar 0-7")
+                .setDescription("Numero de dias de mensajes a eliminar 0-7")
                 .setMinValue(0)
                 .setMaxValue(7)
                 .setRequired(false)
@@ -45,7 +45,7 @@ export default {
         }
 
         const usersInput = interaction.options.getString("users");
-        const reason = interaction.options.getString("reason") || "Baneo masivo - Razón no proporcionada";
+        const reason = interaction.options.getString("reason") || "Baneo masivo - Razon no proporcionada";
         const deleteDays = interaction.options.getInteger("delete_days") || 0;
 
         try {
@@ -56,7 +56,7 @@ export default {
 .slice(0, 20);
 
             if (userIds.length === 0) {
-                return await replyUserError(interaction, { type: ErrorTypes.VALIDATION, message: 'Por favor proporciona IDs o menciones de usuario válidas Máximo 20 usuarios a la vez' });
+                return await replyUserError(interaction, { type: ErrorTypes.VALIDATION, message: 'Por favor proporciona IDs o menciones de usuario validas Maximo 20 usuarios a la vez' });
             }
 
             if (userIds.includes(interaction.user.id)) {
@@ -137,7 +137,7 @@ export default {
                     logger.error(`Failed to ban user ${userId}:`, error);
                     const reason = error instanceof TitanBotError
                         ? (error.userMessage || error.message)
-                        : (error.message || "Error desconocido");
+                        : (error.message || "Razon desconocida");
                     results.failed.push({ 
                         userId, 
                         reason,
@@ -148,7 +148,7 @@ export default {
             let description = `**Resultados del Baneo Masivo:**\n\n`;
             
             if (results.successful.length > 0) {
-                description += `✅ **Baneados con éxito (${results.successful.length}):**\n`;
+                description += `✅ **Baneados con exito (${results.successful.length}):**\n`;
                 results.successful.forEach(result => {
                     description += `• ${result.user} (${result.userId})\n`;
                 });
@@ -183,7 +183,7 @@ export default {
 
         } catch (error) {
             logger.error("Error in massban command:", error);
-            return await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: 'Ocurrió un error al procesar el baneo masivo Por favor intenta de nuevo más tarde' });
+            return await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: 'Ocurrio un error al procesar el baneo masivo Por favor intenta de nuevo mas tarde' });
         }
     }
 };
