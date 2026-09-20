@@ -6,43 +6,44 @@ import dashboard from './modules/logging_dashboard.js';
 import channel from './modules/logging_channel.js';
 
 import { replyUserError, ErrorTypes } from '../../utils/errorHandler.js';
+
 export default {
     data: new SlashCommandBuilder()
         .setName('logging')
-        .setDescription('Manage server logging — channels, filters, and event categories.')
+        .setDescription('Gestiona los registros del servidor — canales filtros y categorias de eventos')
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
         .setDMPermission(false)
         .addSubcommand((subcommand) =>
             subcommand
                 .setName('dashboard')
-                .setDescription('Open the logging dashboard — set channels, filters, and toggle categories.'),
+                .setDescription('Abre el panel de registros — configura canales filtros y alterna categorias'),
         )
         .addSubcommand((subcommand) =>
             subcommand
                 .setName('channel')
-                .setDescription('Quick-set a log channel without opening the dashboard.')
+                .setDescription('Configura rapidamente un canal de registros sin abrir el panel')
                 .addStringOption((option) =>
                     option
                         .setName('destination')
-                        .setDescription('Which log destination to configure.')
+                        .setDescription('Que destino de registro configurar')
                         .setRequired(true)
                         .addChoices(
-                            { name: 'Audit (moderation, messages, members…)', value: 'audit' },
-                            { name: 'Applications', value: 'applications' },
-                            { name: 'Reports', value: 'reports' },
+                            { name: 'Auditoria (moderacion mensajes miembros)', value: 'audit' },
+                            { name: 'Solicitudes', value: 'applications' },
+                            { name: 'Reportes', value: 'reports' },
                         ),
                 )
                 .addChannelOption((option) =>
                     option
                         .setName('channel')
-                        .setDescription('The text channel for logs.')
+                        .setDescription('El canal de texto para los registros')
                         .addChannelTypes(ChannelType.GuildText)
                         .setRequired(false),
                 )
                 .addBooleanOption((option) =>
                     option
                         .setName('disable')
-                        .setDescription('Set to True to clear this log channel.')
+                        .setDescription('Establece en True para limpiar este canal de registros')
                         .setRequired(false),
                 ),
         ),
@@ -59,10 +60,10 @@ export default {
                 return await channel.execute(interaction, config, client);
             }
 
-            await replyUserError(interaction, { type: ErrorTypes.VALIDATION, message: 'This subcommand is not recognised.' });
+            await replyUserError(interaction, { type: ErrorTypes.VALIDATION, message: 'Este subcomando no es reconocido' });
         } catch (error) {
             logger.error('logging command error:', error);
-            await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: 'An unexpected error occurred.' }).catch(() => {});
+            await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: 'Ocurrio un error inesperado' }).catch(() => {});
         }
     },
 };
