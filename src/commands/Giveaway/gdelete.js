@@ -11,12 +11,12 @@ export default {
     data: new SlashCommandBuilder()
         .setName("gdelete")
         .setDescription(
-            "Elimina un mensaje de sorteo y lo remueve de la base de datos.",
+            "Elimina un mensaje de sorteo y lo remueve de la base de datos",
         )
         .addStringOption((option) =>
             option
                 .setName("messageid")
-                .setDescription("El ID de mensaje del sorteo a eliminar.")
+                .setDescription("El ID de mensaje del sorteo a eliminar")
                 .setRequired(true),
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
@@ -26,7 +26,7 @@ export default {
             throw new TitanBotError(
                 'Giveaway command used outside guild',
                 ErrorTypes.VALIDATION,
-                'Este comando solo se puede usar en un servidor.',
+                'Este comando solo se puede usar en un servidor',
                 { userId: interaction.user.id }
             );
         }
@@ -35,7 +35,7 @@ export default {
             throw new TitanBotError(
                 'User lacks ManageGuild permission',
                 ErrorTypes.PERMISSION,
-                "Necesitas el permiso 'Administrar Servidor' para eliminar un sorteo.",
+                "Necesitas el permiso 'Administrar Servidor' para eliminar un sorteo",
                 { userId: interaction.user.id, guildId: interaction.guildId }
             );
         }
@@ -48,7 +48,7 @@ export default {
             throw new TitanBotError(
                 'Invalid message ID format',
                 ErrorTypes.VALIDATION,
-                'Por favor, proporciona un ID de mensaje valido.',
+                'Por favor, proporciona un ID de mensaje valido',
                 { providedId: messageId }
             );
         }
@@ -60,7 +60,7 @@ export default {
             throw new TitanBotError(
                 `Giveaway not found: ${messageId}`,
                 ErrorTypes.VALIDATION,
-                "No se encontro ningun sorteo con ese ID de mensaje.",
+                "No se encontro ningun sorteo con ese ID de mensaje",
                 { messageId, guildId: interaction.guildId }
             );
         }
@@ -117,7 +117,7 @@ export default {
             throw new TitanBotError(
                 `Failed to delete giveaway from database: ${messageId}`,
                 ErrorTypes.UNKNOWN,
-                'El sorteo no se pudo eliminar de la base de datos. Por favor, intentalo de nuevo.',
+                'El sorteo no se pudo eliminar de la base de datos. Por favor, intentalo de nuevo',
                 { messageId, guildId: interaction.guildId }
             );
         }
@@ -143,10 +143,10 @@ export default {
         const wasEnded = giveaway.ended === true || giveaway.isEnded === true || hasWinners;
 
         const winnerStatusMsg = hasWinners
-            ? `Este sorteo ya tenia ${winnerIds.length} ganador(es) seleccionado(s).`
+            ? `Este sorteo ya tenia ${winnerIds.length} ganador(es) seleccionado(s)`
             : wasEnded
-                ? 'Este sorteo finalizo sin ganadores validos.'
-                : 'No se eligio ningun ganador antes de la eliminacion.';
+                ? 'Este sorteo finalizo sin ganadores validos'
+                : 'No se eligio ningun ganador antes de la eliminacion';
 
         logger.info(`Giveaway deleted: ${messageId} in ${channelName}`);
 
