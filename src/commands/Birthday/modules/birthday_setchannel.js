@@ -8,8 +8,8 @@ export default {
         if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
             const embed = new EmbedBuilder()
                 .setColor(0xFF0000)
-                .setTitle('Permission Denied')
-                .setDescription('You need **Manage Server** permissions to configure the birthday channel.');
+                .setTitle('Permiso denegado')
+                .setDescription('Necesitas permisos del **servidor** para configurar el canal de cumpleaños');
             return InteractionHelper.safeReply(interaction, {
                 embeds: [embed],
                 flags: MessageFlags.Ephemeral,
@@ -26,8 +26,8 @@ export default {
                 await setGuildConfig(client, guildId, guildConfig);
                 const embed = new EmbedBuilder()
                     .setColor(0x00FF00)
-                    .setTitle('Birthday Announcements Enabled')
-                    .setDescription(`Birthday announcements will now be posted in ${channel}.`);
+                    .setTitle('Anuncios de cumpleaños habilitados')
+                    .setDescription(`Los anuncios de cumpleaños ahora se publicarán en ${channel}.`);
                 return InteractionHelper.safeReply(interaction, {
                     embeds: [embed],
                     flags: MessageFlags.Ephemeral,
@@ -37,19 +37,19 @@ export default {
                 await setGuildConfig(client, guildId, guildConfig);
                 const embed = new EmbedBuilder()
                     .setColor(0xFFFF00)
-                    .setTitle('Birthday Announcements Disabled')
-                    .setDescription('No channel provided — birthday announcements have been disabled.');
+                    .setTitle('Anuncios de cumpleaños desactivados')
+                    .setDescription('No se ha especificado ningún canal manin los anuncios de cumpleaños se han desactivado');
                 return InteractionHelper.safeReply(interaction, {
                     embeds: [embed],
                     flags: MessageFlags.Ephemeral,
                 });
             }
         } catch (error) {
-            logger.error('birthday_setchannel error:', error);
+            logger.error('error birthday_setchannel:', error);
             const embed = new EmbedBuilder()
                 .setColor(0xFF0000)
-                .setTitle('⚠️ Configuration Error')
-                .setDescription('Could not save the birthday channel configuration.');
+                .setTitle('⚠️ Error de configuración')
+                .setDescription('No se pudo guardar la configuracion del canal de cumpleaños');
             return InteractionHelper.safeReply(interaction, {
                 embeds: [embed],
                 flags: MessageFlags.Ephemeral,
