@@ -4,22 +4,23 @@ import { logger } from '../../utils/logger.js';
 import { TitanBotError, ErrorTypes } from '../../utils/errorHandler.js';
 
 import { InteractionHelper } from '../../utils/interactionHelper.js';
+
 export default {
     data: new SlashCommandBuilder()
-    .setName("flip")
-    .setDescription("Flips a coin (Heads or Tails)."),
-  category: 'Fun',
+        .setName("flip")
+        .setDescription("Lanza una moneda (Cara o Cruz)"),
+    category: 'Fun',
 
-  async execute(interaction, config, client) {
-    const result = Math.random() < 0.5 ? "Heads" : "Tails";
-    const emoji = result === "Heads" ? "🪙" : "🔮";
+    async execute(interaction, config, client) {
+        const result = Math.random() < 0.5 ? "Cara" : "Cruz";
+        const emoji = result === "Cara" ? "🪙" : "🔮";
 
-    const embed = successEmbed(
-      "Heads or Tails?",
-      `The coin landed on... **${result}** ${emoji}!`,
-    );
+        const embed = successEmbed(
+            "¿Cara o Cruz?",
+            `La moneda cayo en... **${result}** ${emoji}!`,
+        );
 
-    await InteractionHelper.safeReply(interaction, { embeds: [embed] });
-    logger.debug(`Flip command executed by user ${interaction.user.id} in guild ${interaction.guildId}`);
-  },
+        await InteractionHelper.safeReply(interaction, { embeds: [embed] });
+        logger.debug(`Flip command executed by user ${interaction.user.id} in guild ${interaction.guildId}`);
+    },
 };
