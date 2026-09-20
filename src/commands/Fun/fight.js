@@ -47,7 +47,7 @@ export default {
 
         const log = [];
         log.push(
-            `💥 **${challenger.username}** desafia a **${opponent.username}** a un duelo! (Al mejor de ${rounds} rondas)`,
+            `💥 **${challenger.username}** desafia a **${opponent.username}** a un duelo (Al mejor de ${rounds} rondas)`,
         );
 
         for (let i = 1; i <= rounds; i++) {
@@ -60,12 +60,12 @@ export default {
                 "desvia y contraataca",
             ][rand(0, 3)];
             log.push(
-                `\n**Ronda ${i}:** ${attacker.username} ${action} a ${target.username} e inflige ${rand(1, damage)} de dano!`,
+                `\n**Ronda ${i}:** ${attacker.username} ${action} a ${target.username} e inflige ${rand(1, damage)} de dano`,
             );
         }
 
         const outcomeText = log.join("\n");
-        const winnerText = `👑 **${winner.username}** ha derrotado a ${loser.username} y se lleva la victoria!`;
+        const winnerText = `👑 **${winner.username}** ha derrotado a ${loser.username} y se lleva la victoria`;
         const fullDescription = `${outcomeText}\n\n${winnerText}`;
 
         const description = fullDescription.length <= EMBED_DESCRIPTION_LIMIT
