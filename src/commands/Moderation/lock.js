@@ -10,7 +10,7 @@ export default {
     data: new SlashCommandBuilder()
     .setName("lock")
     .setDescription(
-      "Locks the current channel (prevents @everyone from sending messages).",
+      "Bloquea el canal actual evita que everyone envie mensajes",
     )
 .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels),
   category: "moderation",
@@ -32,7 +32,7 @@ export default {
     try {
       const currentPermissions = channel.permissionsFor(everyoneRole);
       if (currentPermissions.has(PermissionFlagsBits.SendMessages) === false) {
-        return await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: `${channel} is already locked.` });
+        return await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: `${channel} ya esta bloqueado` });
       }
 
       await channel.permissionOverwrites.edit(
@@ -59,14 +59,14 @@ export default {
       await InteractionHelper.safeEditReply(interaction, {
         embeds: [
           successEmbed(
-            `🔒 **Channel Locked**`,
-            `${channel} is now locked down. No one can speak here now.`,
+            `🔒 **Canal Bloqueado**`,
+            `${channel} ahora esta bloqueado Nadie puede hablar aqui ahora`,
           ),
         ],
       });
     } catch (error) {
       logger.error('Lock command error:', error);
-      await replyUserError(interaction, { type: ErrorTypes.PERMISSION, message: 'An unexpected error occurred while trying to lock the channel. Check my permissions (I need \'Manage Channels\').' });
+      await replyUserError(interaction, { type: ErrorTypes.PERMISSION, message: 'Ocurrio un error inesperado al intentar bloquear el canal Revisa mis permisos necesito Gestionar Canales' });
     }
   }
 };
