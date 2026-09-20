@@ -11,60 +11,55 @@ const SHOP_ITEMS = shopItems;
 export default {
     data: new SlashCommandBuilder()
         .setName('inventory')
-        .setDescription('View your economy inventory'),
+        .setDescription('Mira tu inventario de economia'),
 
     execute: withErrorHandling(async (interaction, config, client) => {
         const deferred = await InteractionHelper.safeDefer(interaction);
         if (!deferred) return;
 
-            const userId = interaction.user.id;
-            const guildId = interaction.guildId;
+        const userId = interaction.user.id;
+        const guildId = interaction.guildId;
 
-            logger.debug(`[ECONOMY] Inventory requested for ${userId}`, { userId, guildId });
+        logger.debug(`[ECONOMY] Inventory requested for ${userId}`, { userId, guildId });
 
-            const userData = await getEconomyData(client, guildId, userId);
+        const userData = await getEconomyData(client, guildId, userId);
 
-            if (!userData) {
-                throw createError(
-                    "Failed to load economy data for inventory",
-                    ErrorTypes.DATABASE,
-                    "Failed to load your economy data. Please try again later.",
-                    { userId, guildId }
-                );
-            }
+        if (!userData) {
+            throw createError(
+                "Failed to load economy data for inventory",
+                ErrorTypes.DATABASE,
+                "No se pudieron cargar tus datos de economia. Por favor, intentalo de nuevo mas tarde.",
+                { userId, guildId }
+            );
+        }
 
-            const inventory = userData.inventory || {};
+        const inventory = userData.inventory || {};
 
-            let inventoryDescription = "Your inventory is currently empty.";
-
-            if (Object.keys(inventory).length > 0) {
-                inventoryDescription = Object.entries(inventory)
-                    .filter(
-                        ([itemId, quantity]) => {
-                            const item = SHOP_ITEMS.find(i => i.id === itemId);
-                            return quantity > 0 && item;
-                        }
-                    )
-                    .map(
-                        ([itemId, quantity]) => {
-                            const item = SHOP_ITEMS.find(i => i.id === itemId);
-                            return `**${item.name}:** ${quantity}x`;
-                        }
-                    )
-                    .join("\n");
-            }
-
-            logger.info(`[ECONOMY] Inventory retrieved`, { 
-                userId, 
-                guildId,
-                itemCount: Object.keys(inventory).length
+        const validItems = Object.entries(inventory)
+            .filter(([itemId, quantity]) => {
+                const item = SHOP_ITEMS.find(i => i.id === itemId);
+                return quantity > 0 && item;
+            })
+            .map(([itemId, quantity]) => {
+                const item = SHOP_ITEMS.find(i => i.id === itemId);
+                return `**${item.name}:** x${quantity}`;
             });
 
-            const embed = createEmbed({ 
-                title: `🎒 ${interaction.user.username}'s Inventory`, 
-                description: inventoryDescription, 
-            }).setThumbnail(interaction.user.displayAvatarURL());
+        const inventoryDescription = validItems.length > 0
+            ? validItems.join("\n")
+            : "Tu inventario esta actualmente vacio.";
 
-            await InteractionHelper.safeEditReply(interaction, { embeds: [embed] });
+        logger.info(`[ECONOMY] Inventory retrieved`, { 
+            userId, 
+            guildId,
+            itemCount: validItems.length
+        });
+
+        const embed = createEmbed({ 
+            title: `🎒 Inventario de ${interaction.user.username}`, 
+            description: inventoryDescription, 
+        }).setThumbnail(interaction.user.displayAvatarURL());
+
+        await InteractionHelper.safeEditReply(interaction, { embeds: [embed] });
     }, { command: 'inventory' })
 };
