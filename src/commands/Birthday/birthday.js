@@ -1,5 +1,4 @@
-import { SlashCommandBuilder, MessageFlags, ChannelType } from 'discord.js';
-import { createEmbed, successEmbed } from '../../utils/embeds.js';
+import { SlashCommandBuilder, ChannelType } from 'discord.js';
 import { replyUserError, ErrorTypes } from '../../utils/errorHandler.js';
 
 import birthdaySet from './modules/birthday_set.js';
@@ -9,7 +8,6 @@ import birthdayRemove from './modules/birthday_remove.js';
 import nextBirthdays from './modules/next_birthdays.js';
 import birthdaySetchannel from './modules/birthday_setchannel.js';
 
-import { InteractionHelper } from '../../utils/interactionHelper.js';
 export default {
     data: new SlashCommandBuilder()
         .setName('birthday')
@@ -29,7 +27,7 @@ export default {
                 .addIntegerOption(option =>
                     option
                         .setName('day')
-                        .setDescription('Dia de nacimiento (1-31)')
+                        .setDescription('Día de nacimiento (1-31)')
                         .setRequired(true)
                         .setMinValue(1)
                         .setMaxValue(31)
@@ -38,7 +36,7 @@ export default {
         .addSubcommand(subcommand =>
             subcommand
                 .setName('info')
-                .setDescription('Ver informacion de cumpleaños')
+                .setDescription('Ver información de cumpleaños')
                 .addUserOption(option =>
                     option
                         .setName('user')
@@ -64,7 +62,8 @@ export default {
         .addSubcommand(subcommand =>
             subcommand
                 .setName('setchannel')
-                .setDescription('Establece o deshabilita el canal para los anuncios de cumpleaños. (Requiere permisos de gestión del servidor)')
+                // Se acortó la descripción a menos de 100 caracteres (81 caracteres)
+                .setDescription('Configura o deshabilita el canal para anuncios de cumpleaños')
                 .addChannelOption(option =>
                     option
                         .setName('channel')
