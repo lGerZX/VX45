@@ -13,7 +13,7 @@ const SUCCESS_CHANCE = 0.7;
 export default {
     data: new SlashCommandBuilder()
         .setName('beg')
-        .setDescription('Mendiga por una pequeña cantidad de dinero'),
+        .setDescription('Mendiga por una pequena cantidad de dinero'),
 
     execute: withErrorHandling(async (interaction, config, client) => {
         const deferred = await InteractionHelper.safeDefer(interaction);
@@ -46,7 +46,7 @@ export default {
                 throw createError(
                     "Beg cooldown active",
                     ErrorTypes.RATE_LIMIT,
-                    `Joder tio calmado manin**${timeMessage}**`,
+                    `Joder tio calmado shh **${timeMessage}**`,
                     { remainingTime, minutes, seconds, cooldownType: 'beg' }
                 );
             }
@@ -77,9 +77,9 @@ export default {
                 );
             } else {
                 const failMessages = [
-                    "Vistes un down inocente pero te robo",
-                    "Alguien grito ¡Consigue un trabajo! y ops jejeje no queria",
-                    "Una puta se robo tu dinero",
+                    "La policia te ahuyento No conseguiste nada",
+                    "Alguien grito ¡Consigue un trabajo! y paso de largo",
+                    "Una ardilla se robo la unica moneda que tenias",
                     "Intentaste mendigar pero te dio demasiada verguenza y te rendiste",
                 ];
 
