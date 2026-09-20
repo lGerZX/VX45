@@ -4,14 +4,15 @@ import { TitanBotError, ErrorTypes } from '../../utils/errorHandler.js';
 import { getUserLevelData, getLevelingConfig, getXpForLevel } from '../../services/leveling/leveling.js';
 
 import { InteractionHelper } from '../../utils/interactionHelper.js';
+
 export default {
   data: new SlashCommandBuilder()
     .setName('rank')
-    .setDescription("Check your or another user's rank and level")
+    .setDescription("Consulta tu rango y nivel o el de otro usuario")
     .addUserOption((option) =>
       option
         .setName('user')
-        .setDescription('The user to check the rank of')
+        .setDescription('El usuario del que deseas consultar el rango')
         .setRequired(false)
     )
     .setDMPermission(false),
@@ -26,7 +27,7 @@ export default {
         embeds: [
           new EmbedBuilder()
             .setColor('#f1c40f')
-            .setDescription('The leveling system is currently disabled on this server.')
+            .setDescription('El sistema de nivelacion esta actualmente desactivado en este servidor')
         ],
         flags: MessageFlags.Ephemeral
       });
@@ -40,9 +41,9 @@ export default {
 
     if (!member) {
       throw new TitanBotError(
-        `User ${targetUser.id} not found in guild`,
+        `Usuario ${targetUser.id} no encontrado en el servidor`,
         ErrorTypes.USER_INPUT,
-        'Could not find the specified user in this server.'
+        'No se pudo encontrar al usuario especificado en este servidor'
       );
     }
 
@@ -59,11 +60,11 @@ export default {
     const progressBar = createProgressBar(progress, 20);
 
     const embed = new EmbedBuilder()
-      .setTitle(`${member.displayName}'s Rank`)
+      .setTitle(`Rango de ${member.displayName}`)
       .setThumbnail(member.displayAvatarURL({ dynamic: true }))
       .addFields(
         {
-          name: 'Level',
+          name: 'Nivel',
           value: safeUserData.level.toString(),
           inline: true
         },
@@ -73,12 +74,12 @@ export default {
           inline: true
         },
         {
-          name: 'Total XP',
+          name: 'XP total',
           value: safeUserData.totalXp.toString(),
           inline: true
         },
         {
-          name: `Progress to Level ${safeUserData.level + 1}`,
+          name: `Progreso al Nivel ${safeUserData.level + 1}`,
           value: `${progressBar} ${progress}%`
         }
       )
@@ -86,7 +87,7 @@ export default {
       .setTimestamp();
 
     await InteractionHelper.safeEditReply(interaction, { embeds: [embed] });
-    logger.debug(`Rank checked for user ${targetUser.id} in guild ${interaction.guildId}`);
+    logger.debug(`Rango consultado para el usuario ${targetUser.id} en el servidor ${interaction.guildId}`);
   }
 };
 
