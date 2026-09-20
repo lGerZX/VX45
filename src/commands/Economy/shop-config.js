@@ -5,17 +5,17 @@ export default {
     slashOnly: true,
     data: new SlashCommandBuilder()
         .setName('shop-config')
-        .setDescription('Configure shop settings. (Manage Server required)')
+        .setDescription('Configura la tienda Requiere administrar servidor')
         .addSubcommand(subcommand =>
             subcommand
                 .setName('setrole')
-                .setDescription('Set the Discord role granted when the Premium Role shop item is purchased.')
+                .setDescription('Establece el rol de Discord al comprar el rol premium de la tienda')
                 .addRoleOption(option =>
                     option
                         .setName('role')
-                        .setDescription('The role to grant for Premium Role purchases.')
-                        .setRequired(true),
-                ),
+                        .setDescription('El rol que se otorga al comprar el rol premium')
+                        .setRequired(true)
+                )
         ),
 
     async execute(interaction, config, client) {
@@ -24,5 +24,5 @@ export default {
         if (subcommand === 'setrole') {
             return shopConfigSetrole.execute(interaction, config, client);
         }
-    },
+    }
 };
