@@ -77,7 +77,7 @@ export default {
                 );
             } else {
                 const failMessages = [
-                    "La policia te ahuyento No conseguiste nada",
+                    "Vistes un down inocente pero te robo",
                     "Alguien grito ¡Consigue un trabajo! y ops jejeje no queria",
                     "Una puta se robo tu dinero",
                     "Intentaste mendigar pero te dio demasiada verguenza y te rendiste",
