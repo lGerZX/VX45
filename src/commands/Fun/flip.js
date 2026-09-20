@@ -17,7 +17,7 @@ export default {
 
         const embed = successEmbed(
             "¿Cara o Cruz?",
-            `La moneda cayo en... **${result}** ${emoji}!`,
+            `La moneda cayo en... **${result}** ${emoji}, omg muy bien mi amol`,
         );
 
         await InteractionHelper.safeReply(interaction, { embeds: [embed] });
