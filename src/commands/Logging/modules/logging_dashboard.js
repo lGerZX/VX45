@@ -24,9 +24,9 @@ export function getCategoryStatus(enabledEvents, category, auditEnabled) {
 }
 
 async function formatChannelMention(guild, id) {
-  if (!id) return '`Not configured`';
+  if (!id) return '`No configurado`';
   const channel = guild.channels.cache.get(id) ?? await guild.channels.fetch(id).catch(() => null);
-  return channel ? channel.toString() : `⚠️ Missing (${id})`;
+  return channel ? channel.toString() : `⚠️ Faltante (${id})`;
 }
 
 function countEnabledCategories(enabledEvents, auditEnabled) {
@@ -53,44 +53,44 @@ export async function buildLoggingDashboardView(interaction, client) {
   const { enabled: enabledCount, total } = countEnabledCategories(loggingStatus.enabledEvents, auditEnabled);
 
   const embed = new EmbedBuilder()
-    .setTitle('📝 Logging Dashboard')
-    .setDescription(`Manage server logging for **${interaction.guild.name}**. Use the menu below to configure channels, categories, and filters.`)
+    .setTitle('📝 Panel de control de registros')
+    .setDescription(`Gestiona el registro del servidor para **${interaction.guild.name}** Usa el menu de abajo para configurar canales categorias y filtros`)
     .setColor(auditEnabled ? getColor('success') : getColor('warning'))
     .addFields(
       {
-        name: 'Logging Status',
-        value: auditEnabled ? '✅ Enabled' : '❌ Disabled',
+        name: 'Estado de registros',
+        value: auditEnabled ? '✅ Habilitado' : '❌ Deshabilitado',
         inline: true,
       },
       {
-        name: 'Event Categories',
-        value: auditEnabled ? `${enabledCount}/${total} enabled` : '`Logging disabled`',
+        name: 'Categorias de eventos',
+        value: auditEnabled ? `${enabledCount}/${total} habilitadas` : '`Registros deshabilitados`',
         inline: true,
       },
       {
-        name: 'Ignore Filters',
-        value: `${ignore.users?.length || 0} users · ${ignore.channels?.length || 0} channels`,
+        name: 'Filtros de ignorados',
+        value: `${ignore.users?.length \vert{}\vert{} 0} usuarios · ${ignore.channels?.length || 0} canales`,
         inline: true,
       },
       {
-        name: 'Log Channels',
+        name: 'Canales de registros',
         value: [
-          `**Audit:** ${auditChannel}`,
-          `**Applications:** ${applicationsChannel}`,
-          `**Reports:** ${reportsChannel}`,
+          `**Auditoria:** ${auditChannel}`,
+          `**Solicitudes:** ${applicationsChannel}`,
+          `**Reportes:** ${reportsChannel}`,
         ].join('\n'),
         inline: false,
       },
       {
-        name: 'Ticket Channels (read-only)',
+        name: 'Canales de tickets (solo lectura)',
         value: [
-          `**Ticket Logs:** ${lifecycleChannel}`,
-          `**Transcripts:** ${transcriptChannel}`,
+          `**Registros de tickets:** ${lifecycleChannel}`,
+          `**Transcripciones:** ${transcriptChannel}`,
         ].join('\n'),
         inline: false,
       },
     )
-    .setFooter({ text: 'Ticket channels: configure via /ticket dashboard' })
+    .setFooter({ text: 'Canales de tickets: configurar mediante /ticket dashboard' })
     .setTimestamp();
 
   const components = createLoggingDashboardComponents(loggingStatus.enabledEvents, auditEnabled);
@@ -108,15 +108,15 @@ export async function buildLoggingCategoriesView(interaction, client) {
   }).join('\n');
 
   const embed = new EmbedBuilder()
-    .setTitle('📋 Event Categories')
+    .setTitle('📋 Categorias de eventos')
     .setDescription(
       auditEnabled
-        ? 'Toggle which types of events are logged to your audit channel.'
-        : '⚠️ Logging is disabled. Enable it from the main dashboard to send logs.',
+        ? 'Alterna que tipos de eventos se registran en tu canal de auditoria'
+        : '⚠️ El registro esta deshabilitado Habilitalo desde el panel principal para enviar registros',
     )
     .setColor(getColor('info'))
-    .addFields({ name: 'Category Status', value: categoryLines, inline: false })
-    .setFooter({ text: 'Green = logging on · Red = logging off' })
+    .addFields({ name: 'Estado de la categoria', value: categoryLines, inline: false })
+    .setFooter({ text: 'Verde = registro activo · Rojo = registro desactivado' })
     .setTimestamp();
 
   const components = createLoggingCategoryViewComponents(loggingStatus.enabledEvents, auditEnabled);
@@ -128,22 +128,22 @@ export async function buildLoggingFilterView(interaction, client) {
   const ignore = loggingStatus.ignore || { users: [], channels: [] };
 
   const userLines = (ignore.users || []).length
-    ? ignore.users.map((id) => `• User \`${id}\``).join('\n')
-    : '*No ignored users*';
+    ? ignore.users.map((id) => `• Usuario \`${id}\``).join('\n')
+    : '*No hay usuarios ignorados*';
 
   const channelLines = (ignore.channels || []).length
-    ? ignore.channels.map((id) => `• Channel \`${id}\``).join('\n')
-    : '*No ignored channels*';
+    ? ignore.channels.map((id) => `• Canal \`${id}\``).join('\n')
+    : '*No hay canales ignorados*';
 
   const embed = new EmbedBuilder()
-    .setTitle('🔇 Log Ignore Filters')
-    .setDescription('Users and channels on this list will be skipped when sending audit logs.')
+    .setTitle('🔇 Filtros de ignorados')
+    .setDescription('Los usuarios y canales de esta lista se omitiran al enviar registros de auditoria')
     .setColor(getColor('info'))
     .addFields(
-      { name: 'Ignored Users', value: userLines.slice(0, 1024), inline: false },
-      { name: 'Ignored Channels', value: channelLines.slice(0, 1024), inline: false },
+      { name: 'Usuarios ignorados', value: userLines.slice(0, 1024), inline: false },
+      { name: 'Canales ignorados', value: channelLines.slice(0, 1024), inline: false },
     )
-    .setFooter({ text: 'Use the buttons below to add or remove filters' })
+    .setFooter({ text: 'Usa los botones de abajo para añadir o quitar filtros' })
     .setTimestamp();
 
   const components = createLoggingFilterComponents();
@@ -151,11 +151,11 @@ export async function buildLoggingFilterView(interaction, client) {
 }
 
 export function isCategoriesView(interaction) {
-  return interaction.message?.embeds?.[0]?.title === '📋 Event Categories';
+  return interaction.message?.embeds?.[0]?.title === '📋 Categorias de eventos';
 }
 
 export function isFilterView(interaction) {
-  return interaction.message?.embeds?.[0]?.title === '🔇 Log Ignore Filters';
+  return interaction.message?.embeds?.[0]?.title === '🔇 Filtros de ignorados';
 }
 
 export async function refreshDashboardMessage(interaction, client) {
@@ -180,7 +180,7 @@ export default {
   async execute(interaction, config, client) {
     try {
       if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
-        return await replyUserError(interaction, { type: ErrorTypes.PERMISSION, message: 'You need **Manage Server** permissions to view the logging dashboard.' });
+        return await replyUserError(interaction, { type: ErrorTypes.PERMISSION, message: 'Necesitas permisos de **Gestionar Servidor** para ver el panel de control de registros' });
       }
 
       await InteractionHelper.safeDefer(interaction, { flags: MessageFlags.Ephemeral });
@@ -188,7 +188,7 @@ export default {
       await InteractionHelper.safeEditReply(interaction, { embeds: [embed], components });
     } catch (error) {
       logger.error('logging_dashboard error:', error);
-      await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: 'Failed to load the logging dashboard.' });
+      await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: 'Error al cargar el panel de control de registros' });
     }
   },
 };
