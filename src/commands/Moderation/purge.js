@@ -9,11 +9,11 @@ import { replyUserError, ErrorTypes } from '../../utils/errorHandler.js';
 export default {
     data: new SlashCommandBuilder()
     .setName("purge")
-    .setDescription("Delete a specific amount of messages")
+    .setDescription("Elimina una cantidad especifica de mensajes")
     .addIntegerOption((option) =>
       option
         .setName("amount")
-        .setDescription("Number of messages (1-100)")
+        .setDescription("Numero de mensajes 1-100")
         .setRequired(true),
     )
 .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages),
@@ -37,7 +37,7 @@ export default {
     const channel = interaction.channel;
 
     if (amount < 1 || amount > 100)
-      return await replyUserError(interaction, { type: ErrorTypes.VALIDATION, message: 'Please specify a number between 1 and 100.' });
+      return await replyUserError(interaction, { type: ErrorTypes.VALIDATION, message: 'Por favor especifica un numero entre 1 y 100' });
 
     try {
       const fetched = await channel.messages.fetch({ limit: amount });
@@ -48,10 +48,10 @@ export default {
         client,
         guild: interaction.guild,
         event: {
-          action: "Messages Purged",
-          target: `${channel} (${deletedCount} messages)`,
+          action: "Mensajes Eliminados",
+          target: `${channel} (${deletedCount} mensajes)`,
           executor: `${interaction.user.tag} (${interaction.user.id})`,
-          reason: `Deleted ${deletedCount} messages`,
+          reason: `Se eliminaron ${deletedCount} mensajes`,
           metadata: {
             channelId: channel.id,
             messageCount: deletedCount,
@@ -64,8 +64,8 @@ export default {
       await InteractionHelper.safeEditReply(interaction, {
         embeds: [
           successEmbed(
-            "Messages Purged",
-            `Deleted ${deletedCount} messages in ${channel}.`,
+            "Mensajes Eliminados",
+            `Se eliminaron ${deletedCount} mensajes en ${channel}`,
           ),
         ],
         flags: MessageFlags.Ephemeral,
@@ -78,7 +78,7 @@ export default {
       }, 3000);
     } catch (error) {
       logger.error('Purge command error:', error);
-      await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: 'An unexpected error occurred during message deletion. Note: Messages older than 14 days cannot be bulk deleted.' });
+      await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: 'Ocurrio un error inesperado durante la eliminacion de mensajes Nota: Los mensajes de mas de 14 dias no se pueden eliminar en masa' });
     }
   }
 };
