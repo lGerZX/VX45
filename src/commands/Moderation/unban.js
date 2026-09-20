@@ -8,16 +8,16 @@ import { InteractionHelper } from '../../utils/interactionHelper.js';
 export default {
     data: new SlashCommandBuilder()
         .setName("unban")
-        .setDescription("Unban a user from the server")
+        .setDescription("Desbanea a un usuario del servidor")
         .addStringOption(option =>
             option
                 .setName("target")
-                .setDescription("The ID (or mention) of the user to unban")
+                .setDescription("El ID o mencion del usuario a desbanear")
                 .setRequired(true),
         )
         .addStringOption(option =>
             option.setName("reason")
-                .setDescription("Reason for the unban")
+                .setDescription("Razon para el desbaneo")
                 .setRequired(false),
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
@@ -40,7 +40,7 @@ export default {
         if (!/^\d{17,20}$/.test(targetId)) {
             return replyUserError(interaction, {
                 type: ErrorTypes.USER_INPUT,
-                message: 'Please provide a valid user ID or mention.',
+                message: 'Por favor proporciona un ID de usuario o mencion valida',
             });
         }
 
@@ -48,11 +48,11 @@ export default {
         if (!targetUser) {
             return replyUserError(interaction, {
                 type: ErrorTypes.USER_INPUT,
-                message: `Could not find a user with the ID \`${targetId}\`.`,
+                message: `No se pudo encontrar un usuario con el ID \`${targetId}\``,
             });
         }
 
-        const reason = interaction.options.getString("reason") || "No reason provided";
+        const reason = interaction.options.getString("reason") || "Razon no proporcionada";
 
         const result = await ModerationService.unbanUser({
             guild: interaction.guild,
@@ -64,8 +64,8 @@ export default {
         await InteractionHelper.safeEditReply(interaction, {
             embeds: [
                 successEmbed(
-                    "✅ User Unbanned",
-                    `Successfully unbanned **${targetUser.tag}** from the server.\n\n**Reason:** ${reason}\n**Case ID:** #${result.caseId}`,
+                    "✅ Usuario Desbaneado",
+                    `Se desbaneo exitosamente a **${targetUser.tag}** del servidor\n\n**Razon:** ${reason}\n**ID de Caso:** #${result.caseId}`,
                 ),
             ],
         });
