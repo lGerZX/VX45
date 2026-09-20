@@ -69,8 +69,8 @@ export default {
             .setDescription('Deshabilita un solo comando o una categoría completa')
             .setRequired(true)
             .addChoices(
-              { name: 'category', value: 'category' },
-              { name: 'command', value: 'command' },
+              { name: 'Category', value: 'category' },
+              { name: 'Command', value: 'command' },
             ),
         )
         .addStringOption((option) =>
