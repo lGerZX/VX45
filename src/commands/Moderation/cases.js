@@ -7,27 +7,27 @@ import { replyUserError, ErrorTypes } from '../../utils/errorHandler.js';
 export default {
     data: new SlashCommandBuilder()
         .setName('cases')
-        .setDescription('View moderation cases and audit logs')
+        .setDescription('Ver casos de moderacion y registros de auditoria')
         .setDefaultMemberPermissions(PermissionFlagsBits.ViewAuditLog)
         .setDMPermission(false)
         .addStringOption(option =>
             option.setName('filter')
-                .setDescription('Filter cases by type or user')
+                .setDescription('Filtrar casos por tipo o usuario')
                 .addChoices(
-                    { name: 'All Cases', value: 'all' },
-                    { name: 'Bans', value: 'Member Banned' },
-                    { name: 'Kicks', value: 'Member Kicked' },
-                    { name: 'Timeouts', value: 'Member Timed Out' },
-                    { name: 'Warnings', value: 'User Warned' }
+                    { name: 'Todos los Casos', value: 'all' },
+                    { name: 'Baneos', value: 'Member Banned' },
+                    { name: 'Expulsiones', value: 'Member Kicked' },
+                    { name: 'Aislamientos', value: 'Member Timed Out' },
+                    { name: 'Advertencias', value: 'User Warned' }
                 )
         )
         .addUserOption(option =>
             option.setName('user')
-                .setDescription('Filter cases by specific user')
+                .setDescription('Filtrar casos por un usuario especifico')
         )
         .addIntegerOption(option =>
             option.setName('limit')
-                .setDescription('Number of cases to show (default: 10)')
+                .setDescription('Numero de casos a mostrar por defecto 10')
                 .setMinValue(1)
                 .setMaxValue(50)
         ),
@@ -60,8 +60,8 @@ export default {
 
             if (cases.length === 0) {
                 throw new Error(targetUser 
-                    ? `No moderation cases found for ${targetUser.tag}`
-                    : `No ${filterType === 'all' ? '' : filterType} cases found in this server.`
+                    ? `No se encontraron casos de moderacion para ${targetUser.tag}`
+                    : `No se encontraron casos de ${filterType === 'all' ? '' : filterType} en este servidor`
                 );
             }
 
@@ -75,8 +75,8 @@ export default {
                 const pageCases = cases.slice(startIndex, endIndex);
 
                 const embed = createEmbed({
-                    title: 'Moderation Cases',
-                    description: `Showing moderation cases for **${interaction.guild.name}**\n\n**Page ${page} of ${totalPages}**`
+                    title: 'Casos de Moderacion',
+                    description: `Mostrando casos de moderacion para **${interaction.guild.name}**\n\n**Pagina ${page} de ${totalPages}**`
                 });
 
                 pageCases.forEach(case_ => {
@@ -84,14 +84,14 @@ export default {
                     const time = new Date(case_.createdAt).toLocaleTimeString();
                     
                     embed.addFields({
-                        name: `Case #${case_.caseId} - ${case_.action}`,
-                        value: `**Target:** ${case_.target}\n**Moderator:** ${case_.executor}\n**Date:** ${date} at ${time}\n**Reason:** ${case_.reason || 'No reason provided'}`,
+                        name: `Caso #${case_.caseId} - ${case_.action}`,
+                        value: `**Objetivo:** ${case_.target}\n**Moderador:** ${case_.executor}\n**Fecha:** ${date} a las ${time}\n**Razon:** ${case_.reason || 'No se proporciono una razon'}`,
                         inline: false
                     });
                 });
 
                 embed.setFooter({
-                    text: `Total cases: ${cases.length} | Filter: ${filterType}${targetUser ?` | User: ${targetUser.tag}`: ''}`
+                    text: `Total de casos: ${cases.length} | Filtro: ${filterType}${targetUser ?` | Usuario: ${targetUser.tag}`: ''}`
                 });
 
                 return embed;
@@ -102,19 +102,19 @@ export default {
                 
                 const prevButton = new ButtonBuilder()
                     .setCustomId('prev_page')
-                    .setLabel('⬅️ Previous')
+                    .setLabel('⬅️ Anterior')
                     .setStyle(ButtonStyle.Secondary)
                     .setDisabled(page === 1);
 
                 const pageInfoButton = new ButtonBuilder()
                     .setCustomId('page_info')
-                    .setLabel(`Page ${page}/${totalPages}`)
+                    .setLabel(`Pagina ${page}/${totalPages}`)
                     .setStyle(ButtonStyle.Primary)
                     .setDisabled(true);
 
                 const nextButton = new ButtonBuilder()
                     .setCustomId('next_page')
-                    .setLabel('Next ➡️')
+                    .setLabel('Siguiente ➡️')
                     .setStyle(ButtonStyle.Secondary)
                     .setDisabled(page === totalPages);
 
@@ -129,7 +129,7 @@ export default {
 
             const collector = message.createMessageComponentCollector({
                 componentType: ComponentType.Button,
-time: 120000
+                time: 120000
             });
 
             collector.on('collect', async (buttonInteraction) => {
@@ -137,7 +137,7 @@ time: 120000
 
                 if (buttonInteraction.user.id !== interaction.user.id) {
                     await buttonInteraction.followUp({
-                        content: 'You cannot use these buttons. Run `/cases` to get your own case view.',
+                        content: 'No puedes usar estos botones Ejecuta `/cases` para ver tus propios casos',
                         flags: MessageFlags.Ephemeral
                     });
                     return;
@@ -171,7 +171,7 @@ time: 120000
 
         } catch (error) {
             logger.error('Error in cases command:', error);
-            return await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: 'An error occurred while retrieving moderation cases. Please try again later.' });
+            return await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: 'Ocurrio un error al obtener los casos de moderacion Por favor intenta de nuevo mas tarde' });
         }
     }
 };
