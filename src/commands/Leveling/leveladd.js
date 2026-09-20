@@ -6,26 +6,27 @@ import { addLevels, getLevelingConfig } from '../../services/leveling/leveling.j
 import { createEmbed } from '../../utils/embeds.js';
 
 import { InteractionHelper } from '../../utils/interactionHelper.js';
+
 export default {
   data: new SlashCommandBuilder()
-    .setName('leveladd')
-    .setDescription('Add levels to a user')
+    .setName('agregarniveles')
+    .setDescription('Agrega niveles a un usuario')
     .addUserOption((option) =>
       option
-        .setName('user')
-        .setDescription('The user to add levels to')
+        .setName('usuario')
+        .setDescription('El usuario al que se le añadiran niveles')
         .setRequired(true)
     )
     .addIntegerOption((option) =>
       option
-        .setName('levels')
-        .setDescription('Number of levels to add')
+        .setName('niveles')
+        .setDescription('Numero de niveles a añadir')
         .setRequired(true)
         .setMinValue(1)
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
     .setDMPermission(false),
-  category: 'Leveling',
+  category: 'Nivelacion',
 
   async execute(interaction, config, client) {
     await InteractionHelper.safeDefer(interaction);
@@ -33,7 +34,7 @@ export default {
     const hasPermission = await checkUserPermissions(
       interaction,
       PermissionFlagsBits.ManageGuild,
-      'You need ManageGuild permission to use this command.'
+      'Necesitas el permiso Gestionar Servidor para usar este comando'
     );
     if (!hasPermission) return;
 
@@ -43,22 +44,22 @@ export default {
         embeds: [
           new EmbedBuilder()
             .setColor('#f1c40f')
-            .setDescription('The leveling system is currently disabled on this server.')
+            .setDescription('El sistema de niveles esta actualmente desactivado en este servidor')
         ],
         flags: MessageFlags.Ephemeral
       });
       return;
     }
 
-    const targetUser = interaction.options.getUser('user');
-    const levelsToAdd = interaction.options.getInteger('levels');
+    const targetUser = interaction.options.getUser('usuario');
+    const levelsToAdd = interaction.options.getInteger('niveles');
 
     const member = await interaction.guild.members.fetch(targetUser.id).catch(() => null);
     if (!member) {
       throw new TitanBotError(
-        `User ${targetUser.id} not found in this guild`,
+        `Usuario ${targetUser.id} no encontrado en este servidor`,
         ErrorTypes.USER_INPUT,
-        'The specified user is not in this server.'
+        'El usuario especificado no esta en este servidor'
       );
     }
 
@@ -67,15 +68,15 @@ export default {
     await InteractionHelper.safeEditReply(interaction, {
       embeds: [
         createEmbed({
-          title: 'Levels Added',
-          description: `Successfully added ${levelsToAdd} levels to ${targetUser.tag}.\n**New Level:** ${userData.level}`,
+          title: 'Niveles añadidos',
+          description: `Se han añadido exitosamente ${levelsToAdd} niveles a ${targetUser.tag}\n**Nuevo nivel:** ${userData.level}`,
           color: 'success'
         })
       ]
     });
 
     logger.info(
-      `[ADMIN] User ${interaction.user.tag} added ${levelsToAdd} levels to ${targetUser.tag} in guild ${interaction.guildId}`
+      `[ADMIN] El usuario ${interaction.user.tag} añadio ${levelsToAdd} niveles a ${targetUser.tag} en el servidor ${interaction.guildId}`
     );
   }
 };
