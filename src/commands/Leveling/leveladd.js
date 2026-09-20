@@ -9,24 +9,24 @@ import { InteractionHelper } from '../../utils/interactionHelper.js';
 
 export default {
   data: new SlashCommandBuilder()
-    .setName('agregarniveles')
-    .setDescription('Agrega niveles a un usuario')
+    .setName('leveladd')
+    .setDescription('Añadir niveles a un usuario')
     .addUserOption((option) =>
       option
-        .setName('usuario')
+        .setName('user')
         .setDescription('El usuario al que se le añadiran niveles')
         .setRequired(true)
     )
     .addIntegerOption((option) =>
       option
-        .setName('niveles')
+        .setName('levels')
         .setDescription('Numero de niveles a añadir')
         .setRequired(true)
         .setMinValue(1)
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
     .setDMPermission(false),
-  category: 'Nivelacion',
+  category: 'Leveling',
 
   async execute(interaction, config, client) {
     await InteractionHelper.safeDefer(interaction);
@@ -34,7 +34,7 @@ export default {
     const hasPermission = await checkUserPermissions(
       interaction,
       PermissionFlagsBits.ManageGuild,
-      'Necesitas el permiso Gestionar Servidor para usar este comando'
+      'Necesitas el permiso ManageGuild para usar este comando'
     );
     if (!hasPermission) return;
 
@@ -44,15 +44,15 @@ export default {
         embeds: [
           new EmbedBuilder()
             .setColor('#f1c40f')
-            .setDescription('El sistema de niveles esta actualmente desactivado en este servidor')
+            .setDescription('El sistema de nivelacion esta actualmente desactivado en este servidor')
         ],
         flags: MessageFlags.Ephemeral
       });
       return;
     }
 
-    const targetUser = interaction.options.getUser('usuario');
-    const levelsToAdd = interaction.options.getInteger('niveles');
+    const targetUser = interaction.options.getUser('user');
+    const levelsToAdd = interaction.options.getInteger('levels');
 
     const member = await interaction.guild.members.fetch(targetUser.id).catch(() => null);
     if (!member) {
@@ -69,7 +69,7 @@ export default {
       embeds: [
         createEmbed({
           title: 'Niveles añadidos',
-          description: `Se han añadido exitosamente ${levelsToAdd} niveles a ${targetUser.tag}\n**Nuevo nivel:** ${userData.level}`,
+          description: `Se añadieron con exito ${levelsToAdd} niveles a ${targetUser.tag}\n**Nuevo nivel:** ${userData.level}`,
           color: 'success'
         })
       ]
