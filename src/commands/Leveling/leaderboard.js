@@ -4,12 +4,13 @@ import { TitanBotError, ErrorTypes } from '../../utils/errorHandler.js';
 import { getLeaderboard, getLevelingConfig, getXpForLevel } from '../../services/leveling/leveling.js';
 
 import { InteractionHelper } from '../../utils/interactionHelper.js';
+
 export default {
   data: new SlashCommandBuilder()
-    .setName('leaderboard')
-    .setDescription("Shows the server's level leaderboard")
+    .setName('clasificacion')
+    .setDescription("Muestra la tabla de clasificacion de niveles del servidor")
     .setDMPermission(false),
-  category: 'Leveling',
+  category: 'Nivelacion',
 
   async execute(interaction, config, client) {
     await InteractionHelper.safeDefer(interaction);
@@ -21,7 +22,7 @@ export default {
         embeds: [
           new EmbedBuilder()
             .setColor('#f1c40f')
-            .setDescription('The leveling system is currently disabled on this server.')
+            .setDescription('El sistema de niveles esta actualmente desactivado en este servidor')
         ],
         flags: MessageFlags.Ephemeral
       });
@@ -32,16 +33,16 @@ export default {
 
     if (leaderboard.length === 0) {
       throw new TitanBotError(
-        'No leaderboard data found',
+        'No se encontraron datos de la tabla de clasificacion',
         ErrorTypes.DATABASE,
-        'No level data found yet. Start chatting to gain XP!'
+        'Aun no hay datos de nivel Empieza a chatear para ganar XP'
       );
     }
 
     const embed = new EmbedBuilder()
-      .setTitle('Level Leaderboard')
+      .setTitle('Tabla de clasificacion de niveles')
       .setColor('#2ecc71')
-      .setDescription("Top 10 most active members in this server:")
+      .setDescription("Top 10 miembros mas activos en este servidor")
       .setTimestamp();
 
     const leaderboardText = await Promise.all(
@@ -51,25 +52,25 @@ export default {
           const userMention = member?.user.toString() || `<@${user.userId}>`;
           const xpForNextLevel = getXpForLevel(user.level + 1);
 
-          let rankPrefix = `${index + 1}.`;
+          let rankPrefix = `${index + 1}`;
           if (index === 0) rankPrefix = '🥇';
           else if (index === 1) rankPrefix = '🥈';
           else if (index === 2) rankPrefix = '🥉';
-          else rankPrefix = `**${index + 1}.**`;
+          else rankPrefix = `**${index + 1}**`;
 
-          return `${rankPrefix} ${userMention} - Level ${user.level} (${user.xp}/${xpForNextLevel} XP)`;
+          return `${rankPrefix} ${userMention} - Nivel ${user.level} (${user.xp}/${xpForNextLevel} XP)`;
         } catch {
-          return `**${index + 1}.** Error loading user ${user.userId}`;
+          return `**${index + 1}** Error al cargar usuario ${user.userId}`;
         }
       })
     );
 
     embed.addFields({
-      name: 'Rankings',
+      name: 'Clasificacion',
       value: leaderboardText.join('\n')
     });
 
     await InteractionHelper.safeEditReply(interaction, { embeds: [embed] });
-    logger.debug(`Leaderboard displayed for guild ${interaction.guildId}`);
+    logger.debug(`Tabla de clasificacion mostrada para el servidor ${interaction.guildId}`);
   }
 };
