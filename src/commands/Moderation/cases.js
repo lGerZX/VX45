@@ -171,7 +171,7 @@ export default {
 
         } catch (error) {
             logger.error('Error in cases command:', error);
-            return await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: 'Ocurrio un error al obtener los casos de moderacion Por favor intenta de nuevo mas tarde' });
+            return await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: 'Ocurrio un error al obtener los casos de moderacion por favor intenta de nuevo mas tarde' });
         }
     }
 };
