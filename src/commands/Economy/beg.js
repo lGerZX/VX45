@@ -13,7 +13,7 @@ const SUCCESS_CHANCE = 0.7;
 export default {
     data: new SlashCommandBuilder()
         .setName('beg')
-        .setDescription('Mendiga por una pequena cantidad de dinero'),
+        .setDescription('Mendiga por una pequeña cantidad de dinero'),
 
     execute: withErrorHandling(async (interaction, config, client) => {
         const deferred = await InteractionHelper.safeDefer(interaction);
