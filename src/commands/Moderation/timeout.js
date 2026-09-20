@@ -6,35 +6,35 @@ import { InteractionHelper } from '../../utils/interactionHelper.js';
 import { ModerationService } from '../../services/moderation/moderationService.js';
 
 const durationChoices = [
-    { name: "5 minutes", value: 5 },
-    { name: "10 minutes", value: 10 },
-    { name: "30 minutes", value: 30 },
-    { name: "1 hour", value: 60 },
-    { name: "6 hours", value: 360 },
-    { name: "1 day", value: 1440 },
-    { name: "1 week", value: 10080 },
+    { name: "5 minutos", value: 5 },
+    { name: "10 minutos", value: 10 },
+    { name: "30 minutos", value: 30 },
+    { name: "1 hora", value: 60 },
+    { name: "6 horas", value: 360 },
+    { name: "1 dia", value: 1440 },
+    { name: "1 semana", value: 10080 },
 ];
 
 export default {
     data: new SlashCommandBuilder()
         .setName("timeout")
-        .setDescription("Timeout a user for a specific duration.")
+        .setDescription("Silencia a un usuario por un tiempo especifico")
         .addUserOption((option) =>
             option
                 .setName("target")
-                .setDescription("User to timeout")
+                .setDescription("Usuario a silenciar")
                 .setRequired(true),
         )
         .addIntegerOption(
             (option) =>
                 option
                     .setName("duration")
-                    .setDescription("Duration of the timeout")
+                    .setDescription("Duracion del silencio")
                     .setRequired(true)
                     .addChoices(...durationChoices),
         )
         .addStringOption((option) =>
-            option.setName("reason").setDescription("Reason for the timeout"),
+            option.setName("reason").setDescription("Razon del silencio"),
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
     category: "moderation",
@@ -53,13 +53,13 @@ export default {
         const targetUser = interaction.options.getUser("target");
         const member = interaction.options.getMember("target");
         const durationMinutes = interaction.options.getInteger("duration");
-        const reason = interaction.options.getString("reason") || "No reason provided";
+        const reason = interaction.options.getString("reason") || "Razon no proporcionada";
 
         if (!targetUser) {
             throw new TitanBotError(
                 'Missing target user',
                 ErrorTypes.USER_INPUT,
-                'You must specify a user to timeout.',
+                'Debes especificar un usuario para silenciar',
                 { subtype: 'invalid_user' },
             );
         }
@@ -68,21 +68,21 @@ export default {
             throw new TitanBotError(
                 "Cannot timeout self",
                 ErrorTypes.VALIDATION,
-                "You cannot timeout yourself.",
+                "No puedes silenciarte a ti mismo",
             );
         }
         if (targetUser.id === client.user.id) {
             throw new TitanBotError(
                 "Cannot timeout bot",
                 ErrorTypes.VALIDATION,
-                "You cannot timeout the bot.",
+                "No puedes silenciar al bot",
             );
         }
         if (!member) {
             throw new TitanBotError(
                 "Target not found",
                 ErrorTypes.USER_INPUT,
-                "The target user is not currently in this server.",
+                "El usuario objetivo no esta actualmente en este servidor",
             );
         }
 
@@ -97,13 +97,13 @@ export default {
 
         const durationDisplay =
             durationChoices.find((c) => c.value === durationMinutes)
-                ?.name || `${durationMinutes} minutes`;
+                ?.name || `${durationMinutes} minutos`;
 
         await InteractionHelper.safeEditReply(interaction, {
             embeds: [
                 successEmbed(
-                    `⏳ **Timed out** ${targetUser.tag} for ${durationDisplay}.`,
-                    `**Reason:** ${reason}\n**Case ID:** #${result.caseId}`,
+                    `⏳ **Silenciado** ${targetUser.tag} por ${durationDisplay}`,
+                    `**Razon:** ${reason}\n**ID de Caso:** #${result.caseId}`,
                 ),
             ],
         });
