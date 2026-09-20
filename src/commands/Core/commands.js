@@ -38,7 +38,10 @@ function buildCategoryChoices(client) {
 
 async function ensureManageGuild(interaction) {
   if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) {
-    await replyUserError(interaction, { type: ErrorTypes.PERMISSION, message: 'Necesitas el permiso **Gestionar servidor** para administrar comandos' });
+    await replyUserError(interaction, {
+      type: ErrorTypes.PERMISSION,
+      message: 'Necesitas el permiso de **Gestionar Servidor** para administrar los comandos.',
+    });
     return false;
   }
 
@@ -48,32 +51,32 @@ async function ensureManageGuild(interaction) {
 export default {
   data: new SlashCommandBuilder()
     .setName('commands')
-    .setDescription('Habilita o deshabilita los comandos y las categorías del bot para este servidor')
+    .setDescription('Habilita o deshabilita comandos y categorías del bot para este servidor')
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
     .setDMPermission(false)
     .addSubcommand((subcommand) =>
       subcommand
         .setName('dashboard')
-        .setDescription('Abra el panel interactivo de acceso a comandos'),
+        .setDescription('Abre el panel interactivo de acceso a comandos'),
     )
     .addSubcommand((subcommand) =>
       subcommand
         .setName('disable')
-        .setDescription('Deshabilitar un comando o una categoría completa')
+        .setDescription('Deshabilita un comando o una categoría entera')
         .addStringOption((option) =>
           option
             .setName('scope')
-            .setDescription('Disable a single command or a whole category')
+            .setDescription('Deshabilita un solo comando o una categoría completa')
             .setRequired(true)
             .addChoices(
-              { name: 'Category', value: 'category' },
-              { name: 'Command', value: 'command' },
+              { name: 'category', value: 'category' },
+              { name: 'command', value: 'command' },
             ),
         )
         .addStringOption((option) =>
           option
             .setName('target')
-            .setDescription('Category or command name')
+            .setDescription('Nombre de la categoría o comando')
             .setRequired(true)
             .setAutocomplete(true),
         ),
@@ -81,21 +84,21 @@ export default {
     .addSubcommand((subcommand) =>
       subcommand
         .setName('enable')
-        .setDescription('Enable a command or entire category')
+        .setDescription('Habilita un comando o una categoria entera')
         .addStringOption((option) =>
           option
             .setName('scope')
-            .setDescription('Enable a single command or a whole category')
+            .setDescription('Habilita un solo comando o una categoría completa')
             .setRequired(true)
             .addChoices(
-              { name: 'Category', value: 'category' },
-              { name: 'Command', value: 'command' },
+              { name: 'Categoría', value: 'category' },
+              { name: 'Comando', value: 'command' },
             ),
         )
         .addStringOption((option) =>
           option
             .setName('target')
-            .setDescription('Category or command name')
+            .setDescription('Nombre de la categoría o comando')
             .setRequired(true)
             .setAutocomplete(true),
         ),
@@ -119,25 +122,25 @@ export default {
       return interaction.respond(choices);
     }
 
-    // For command scope, get all commands including subcommands
+    // Para el alcance de comando, obtener todos los comandos incluyendo subcomandos
     const registry = buildCommandRegistry(interaction.client);
     const allCommands = [];
-    
-    // Check if the query matches a category name - if so, show commands from that category
+
+    // Verificar si la consulta coincide con el nombre de una categoría; de ser así, mostrar comandos de esa categoría
     const matchedCategory = resolveCategoryChoice(interaction.client, query);
-    
+
     if (matchedCategory) {
-      // Show commands from the matched category
+      // Mostrar comandos de la categoría coincidente
       for (const command of matchedCategory.commands) {
         if (!isProtectedCommand(command.name)) {
           allCommands.push(command.name);
         }
       }
     } else {
-      // Show all commands
+      // Mostrar todos los comandos
       for (const category of registry.values()) {
         for (const command of category.commands) {
-          // Include both base commands and subcommands
+          // Incluir tanto comandos base como subcomandos
           if (!isProtectedCommand(command.name)) {
             allCommands.push(command.name);
           }
@@ -189,14 +192,14 @@ export default {
           }
           await handleDashboardComponent(componentInteraction, client);
         } catch (error) {
-          logger.error('Command access dashboard interaction failed', {
+          logger.error('Error en la interacción del panel de acceso a comandos', {
             error: error.message,
             customId: componentInteraction.customId,
             guildId: interaction.guildId,
           });
           await replyUserError(componentInteraction, {
             type: ErrorTypes.UNKNOWN,
-            message: error.message || 'Failed to update command access.',
+            message: error.message || 'No se pudo actualizar el acceso a los comandos',
           }).catch(() => {});
         }
       });
@@ -227,7 +230,10 @@ export default {
     if (scope === 'category') {
       const category = resolveCategoryChoice(client, target);
       if (!category) {
-        return await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: `No category matched \`${target}\`. Use \`/commands dashboard\` to browse categories.` });
+        return await replyUserError(interaction, {
+          type: ErrorTypes.UNKNOWN,
+          message: `Ninguna categoría coincide con \`${target}\`. Usa \`/commands dashboard\` para explorar las categorias`,
+        });
       }
 
       if (isDisable) {
@@ -235,8 +241,8 @@ export default {
         return InteractionHelper.safeEditReply(interaction, {
           embeds: [
             successEmbed(
-              'Category Disabled',
-              `All **${category.displayName}** commands are now disabled.\nProtected commands remain available.`,
+              'Categoría Deshabilitada',
+              `Todos los comandos de **${category.displayName}** ahora están deshabilitados.\nLos comandos protegidos permanecen disponibles`,
             ),
           ],
         });
@@ -244,7 +250,12 @@ export default {
 
       await enableCategory(client, interaction.guildId, category.key);
       return InteractionHelper.safeEditReply(interaction, {
-        embeds: [successEmbed('Category Enabled', `**${category.displayName}** commands are now enabled (except individually disabled commands).`)],
+        embeds: [
+          successEmbed(
+            'Categoria Habilitada',
+            `Los comandos de **${category.displayName}** ahora están habilitados`,
+          ),
+        ],
       });
     }
 
@@ -252,13 +263,23 @@ export default {
     if (isDisable) {
       await disableCommand(client, interaction.guildId, commandName);
       return InteractionHelper.safeEditReply(interaction, {
-        embeds: [successEmbed('Command Disabled', `\`/${commandName}\` is now disabled in this server.`)],
+        embeds: [
+          successEmbed(
+            'Comando Deshabilitado',
+            `\`/${commandName}\` ahora está deshabilitado en este servidor`,
+          ),
+        ],
       });
     }
 
     await enableCommand(client, interaction.guildId, commandName);
     return InteractionHelper.safeEditReply(interaction, {
-      embeds: [successEmbed('Command Enabled', `\`/${commandName}\` is now enabled in this server.`)],
+      embeds: [
+        successEmbed(
+          'Comando Habilitado',
+          `\`/${commandName}\` ahora esta habilitado en este servidor`,
+        ),
+      ],
     });
   },
 };
