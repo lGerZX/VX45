@@ -1,590 +1,350 @@
-import { getColor } from '../../../config/bot.js';
 import {
     ActionRowBuilder,
     StringSelectMenuBuilder,
-    StringSelectMenuOptionBuilder,
-    MessageFlags,
-    ComponentType,
-    EmbedBuilder,
     ButtonBuilder,
-    ButtonStyle
+    ButtonStyle,
+    ModalBuilder,
+    TextInputBuilder,
+    TextInputStyle,
+    ComponentType,
+    EmbedBuilder
 } from 'discord.js';
-import { InteractionHelper } from '../../../utils/interactionHelper.js';
-import { successEmbed } from '../../../utils/embeds.js';
-import { logger } from '../../../utils/logger.js';
-import { TitanBotError, ErrorTypes, replyUserError } from '../../../utils/errorHandler.js';
-import { 
-    getJoinToCreateConfig, 
-    updateJoinToCreateConfig,
-    removeJoinToCreateTrigger
-} from '../../../utils/database.js';
+import { TitanBotError, ErrorTypes, replyUserError } from '../utils/errors.js';
+import { updateJoinToCreateConfig, deleteJoinToCreateConfig } from '../database/jtc.js';
 
 /**
- * Obtiene las opciones efectivas de un canal específico respaldándose en la configuración global
+ * Muestra y maneja el panel de configuración del sistema Join to Create (JTC)
+ * @param {import('discord.js').ChatInputCommandInteraction} interaction 
+ * @param {import('discord.js').VoiceChannel} triggerChannel 
+ * @param {Object} currentConfig 
  */
-function getEffectiveOptions(currentConfig, channelId) {
-    const channelOpts = currentConfig.channelOptions?.[channelId] || {};
-    return {
-        nameTemplate: channelOpts.nameTemplate ?? currentConfig.channelNameTemplate,
-        userLimit: channelOpts.userLimit ?? currentConfig.userLimit ?? 0,
-        bitrate: channelOpts.bitrate ?? currentConfig.bitrate ?? 64000
-    };
-}
+export async function handleJTCConfig(interaction, triggerChannel, currentConfig) {
+    try {
+        // 1. Construir el menú desplegable principal
+        const selectMenu = new StringSelectMenuBuilder()
+            .setCustomId(`jtc_config_menu_${interaction.id}`)
+            .setPlaceholder('Selecciona una opción para configurar...')
+            .addOptions([
+                {
+                    label: 'Plantilla de Nombre',
+                    description: 'Cambia el formato del nombre de los canales creados',
+                    value: 'name_template',
+                    emoji: '✏️'
+                },
+                {
+                    label: 'Límite de Usuarios',
+                    description: 'Ajusta el máximo de usuarios permitidos por canal (0-99)',
+                    value: 'user_limit',
+                    emoji: '👥'
+                },
+                {
+                    label: 'Bitrate',
+                    description: 'Ajusta la calidad de audio del canal (8-384 kbps)',
+                    value: 'bitrate',
+                    emoji: '🔊'
+                },
+                {
+                    label: 'Eliminar Activador',
+                    description: 'Elimina la configuración y el canal creador JTC',
+                    value: 'delete_trigger',
+                    emoji: '🗑️'
+                }
+            ]);
 
-/**
- * Formatea el límite de usuarios para mostrar en los embeds
- */
-function formatUserLimit(limit) {
-    return limit === 0 ? 'Sin límite' : `${limit} usuarios`;
-}
+        const row = new ActionRowBuilder().addComponents(selectMenu);
 
-export default {
-    async execute(interaction, config, client) {
-        try {
-            const triggerChannel = interaction.options.getChannel('trigger_channel');
-            const guildId = interaction.guild.id;
+        const embed = new EmbedBuilder()
+            .setTitle('⚙️ Configuración: Join to Create')
+            .setDescription(`Ajustando el canal activador: **${triggerChannel.name}** (\`${triggerChannel.id}\`)`)
+            .addFields(
+                { name: 'Plantilla de Nombre', value: `\`${currentConfig.nameTemplate || '{username}\'s Channel'}\``, inline: true },
+                { name: 'Límite de Usuarios', value: `\`${currentConfig.userLimit ?? 'Sin límite (0)'}\``, inline: true },
+                { name: 'Bitrate', value: `\`${(currentConfig.bitrate || 64000) / 1000} kbps\``, inline: true }
+            )
+            .setColor(0x5865F2)
+            .setFooter({ text: 'El menú se desactivará tras 5 minutos de inactividad.' });
 
-            const currentConfig = await getJoinToCreateConfig(client, guildId);
+        const message = await interaction.reply({
+            embeds: [embed],
+            components: [row],
+            ephemeral: true,
+            fetchReply: true
+        });
 
-            if (!currentConfig.triggerChannels.includes(triggerChannel.id)) {
-                throw new TitanBotError(
-                    `Channel ${triggerChannel.id} is not a Join to Create trigger`,
-                    ErrorTypes.VALIDATION,
-                    `${triggerChannel} no está configurado como un canal activador de Join to Create.`
-                );
+        // 2. Colector para las interacciones del menú desplegable
+        const menuCollector = message.createMessageComponentCollector({
+            componentType: ComponentType.StringSelect,
+            time: 300_000
+        });
+
+        menuCollector.on('collect', async (selectInteraction) => {
+            if (selectInteraction.user.id !== interaction.user.id) {
+                await selectInteraction.reply({
+                    content: '❌ No tienes permiso para interactuar con este panel.',
+                    ephemeral: true
+                });
+                return;
             }
 
-            const effective = getEffectiveOptions(currentConfig, triggerChannel.id);
+            const selectedValue = selectInteraction.values[0];
 
-            const embed = new EmbedBuilder()
-                .setTitle('Configuración de Join to Create')
-                .setDescription(`Configurar ajustes para ${triggerChannel}`)
-                .setColor(getColor('info'))
-                .addFields(
-                    {
-                        name: 'Plantilla de nombre actual',
-                        value: `\`${effective.nameTemplate}\``,
-                        inline: false
-                    },
-                    {
-                        name: 'Límite de usuarios actual',
-                        value: formatUserLimit(effective.userLimit),
-                        inline: true
-                    },
-                    {
-                        name: 'Bitrate actual',
-                        value: `${effective.bitrate / 1000} kbps`,
-                        inline: true
-                    }
-                )
-                .setFooter({ text: 'Selecciona una opción de configuración a continuación' })
-                .setTimestamp();
+            switch (selectedValue) {
+                case 'name_template':
+                    await handleNameTemplateModal(selectInteraction, triggerChannel, currentConfig, embed, message);
+                    break;
 
-            const selectMenu = new StringSelectMenuBuilder()
-                .setCustomId(`jointocreate_config_${triggerChannel.id}`)
-                .setPlaceholder('Selecciona una opción de configuración')
-                .addOptions(
-                    new StringSelectMenuOptionBuilder()
-                        .setLabel('Cambiar plantilla de nombre')
-                        .setDescription('Modifica el formato para el nombre de los canales temporales')
-                        .setValue('name_template'),
-                    new StringSelectMenuOptionBuilder()
-                        .setLabel('Cambiar límite de usuarios')
-                        .setDescription('Define el límite máximo de usuarios por canal')
-                        .setValue('user_limit'),
-                    new StringSelectMenuOptionBuilder()
-                        .setLabel('Cambiar bitrate')
-                        .setDescription('Ajusta la calidad de audio para los canales temporales')
-                        .setValue('bitrate'),
-                    new StringSelectMenuOptionBuilder()
-                        .setLabel('Eliminar este canal activador')
-                        .setDescription('Remueve este canal del sistema Join to Create')
-                        .setValue('remove_trigger'),
-                    new StringSelectMenuOptionBuilder()
-                        .setLabel('Ver configuración actual')
-                        .setDescription('Muestra todos los detalles de la configuración actual')
-                        .setValue('view_settings')
-                );
+                case 'user_limit':
+                    await handleUserLimitModal(selectInteraction, triggerChannel, currentConfig, embed, message);
+                    break;
 
-            const row = new ActionRowBuilder().addComponents(selectMenu);
+                case 'bitrate':
+                    await handleBitrateModal(selectInteraction, triggerChannel, currentConfig, embed, message);
+                    break;
 
-            await InteractionHelper.safeEditReply(interaction, {
-                embeds: [embed],
-                components: [row],
-            }).catch(error => {
-                logger.error('Error al editar la respuesta en config_setup:', error);
-            });
+                case 'delete_trigger':
+                    await handleDeleteTrigger(selectInteraction, triggerChannel, message, menuCollector);
+                    break;
 
-            const collector = interaction.channel.createMessageComponentCollector({
-                componentType: ComponentType.StringSelect,
-                filter: (i) => i.user.id === interaction.user.id && i.customId === `jointocreate_config_${triggerChannel.id}`,
-                time: 60000
-            });
-
-            collector.on('collect', async (selectInteraction) => {
-                await selectInteraction.deferUpdate();
-
-                const selectedOption = selectInteraction.values[0];
-
-                try {
-                    switch (selectedOption) {
-                        case 'name_template':
-                            await handleNameTemplateChange(selectInteraction, triggerChannel, currentConfig, client);
-                            break;
-                        case 'user_limit':
-                            await handleUserLimitChange(selectInteraction, triggerChannel, currentConfig, client);
-                            break;
-                        case 'bitrate':
-                            await handleBitrateChange(selectInteraction, triggerChannel, currentConfig, client);
-                            break;
-                        case 'remove_trigger':
-                            await handleRemoveTrigger(selectInteraction, triggerChannel, currentConfig, client);
-                            break;
-                        case 'view_settings':
-                            await handleViewSettings(selectInteraction, triggerChannel, currentConfig, client);
-                            break;
-                    }
-                } catch (error) {
-                    if (error instanceof TitanBotError) {
-                        logger.debug(`Error de validación de configuración: ${error.message}`, error.context || {});
-                    } else {
-                        logger.error('Error no esperado en el menú de configuración:', error);
-                    }
-
-                    const errorMessage = error instanceof TitanBotError 
-                        ? error.userMessage || 'Ocurrió un error al procesar tu selección.'
-                        : 'Ocurrió un error al procesar tu selección.';
-
-                    await replyUserError(selectInteraction, {
-                        type: ErrorTypes.CONFIGURATION,
-                        message: errorMessage
-                    }).catch(() => {});
-                }
-            });
-
-            collector.on('end', async (collected, reason) => {
-                if (reason === 'time') {
-                    const disabledRow = new ActionRowBuilder().addComponents(
-                        selectMenu.setDisabled(true)
-                    );
-
-                    await InteractionHelper.safeEditReply(interaction, {
-                        components: [disabledRow],
-                    }).catch(() => {});
-                }
-            });
-        } catch (error) {
-            if (error instanceof TitanBotError) {
-                throw error;
+                default:
+                    await selectInteraction.deferUpdate();
+                    break;
             }
-            logger.error('Error no esperado en config_setup:', error);
-            throw new TitanBotError(
-                `Falló el ajuste de configuración: ${error.message}`,
-                ErrorTypes.UNKNOWN,
-                'No se pudo configurar el sistema Join to Create.'
-            );
-        }
+        });
+
+        menuCollector.on('end', async (_, reason) => {
+            if (reason !== 'deleted') {
+                const disabledRow = new ActionRowBuilder().addComponents(
+                    StringSelectMenuBuilder.from(selectMenu).setDisabled(true)
+                );
+                await interaction.editReply({ components: [disabledRow] }).catch(() => {});
+            }
+        });
+
+    } catch (error) {
+        throw new TitanBotError('Error al iniciar el panel de configuración JTC', ErrorTypes.COMMAND_EXECUTION, error);
     }
-};
-
-async function handleNameTemplateChange(interaction, triggerChannel, currentConfig, client) {
-    const effective = getEffectiveOptions(currentConfig, triggerChannel.id);
-
-    const embed = new EmbedBuilder()
-        .setTitle('Configuración de la Plantilla de Nombre')
-        .setDescription('Por favor escribe la nueva plantilla de nombre en el chat.')
-        .addFields(
-            {
-                name: 'Variables disponibles',
-                value: '• `{username}` - Nombre de usuario\n• `{display_name}` - Nombre mostrado\n• `{user_tag}` - Tag del usuario\n• `{guild_name}` - Nombre del servidor',
-                inline: false
-            },
-            {
-                name: 'Plantilla actual',
-                value: `\`${effective.nameTemplate}\``,
-                inline: false
-            }
-        )
-        .setColor(getColor('info'))
-        .setFooter({ text: 'Escribe tu nueva plantilla en el chat abajo' });
-
-    await interaction.followUp({ embeds: [embed], flags: MessageFlags.Ephemeral });
-
-    const collector = interaction.channel.createMessageCollector({
-        filter: (m) => m.author.id === interaction.user.id,
-        time: 600_000,
-        max: 1
-    });
-
-    collector.on('collect', async (message) => {
-        try {
-            const newTemplate = message.content.trim();
-
-            if (!newTemplate || newTemplate.length > 100) {
-                await replyUserError(interaction, {
-                    type: ErrorTypes.VALIDATION,
-                    message: 'La plantilla debe contener entre 1 y 100 caracteres.'
-                });
-                return;
-            }
-
-            const channelOptions = currentConfig.channelOptions || {};
-            channelOptions[triggerChannel.id] = {
-                ...channelOptions[triggerChannel.id],
-                nameTemplate: newTemplate
-            };
-
-            await updateJoinToCreateConfig(client, interaction.guild.id, {
-                channelOptions: channelOptions
-            });
-
-            await interaction.followUp({
-                embeds: [successEmbed('Plantilla Actualizada', `La plantilla del nombre del canal cambió a \`${newTemplate}\``)],
-                flags: MessageFlags.Ephemeral,
-            });
-
-            await message.delete().catch(() => {});
-        } catch (error) {
-            if (error instanceof TitanBotError) {
-                logger.debug(`Error de validación en la plantilla: ${error.message}`);
-            } else {
-                logger.error('Error actualizando la plantilla:', error);
-            }
-
-            const errorMessage = error instanceof TitanBotError
-                ? error.userMessage || 'No se pudo actualizar la plantilla de nombre.'
-                : 'No se pudo actualizar la plantilla de nombre.';
-
-            await replyUserError(interaction, {
-                type: ErrorTypes.CONFIGURATION,
-                message: errorMessage
-            }).catch(() => {});
-        }
-    });
-
-    collector.on('end', (collected, reason) => {
-        if (reason === 'time') {
-            replyUserError(interaction, {
-                type: ErrorTypes.RATE_LIMIT,
-                message: 'No se recibió respuesta. Actualización de plantilla cancelada.'
-            }).catch(() => {});
-        }
-    });
 }
 
-async function handleUserLimitChange(interaction, triggerChannel, currentConfig, client) {
-    const effective = getEffectiveOptions(currentConfig, triggerChannel.id);
+// ==========================================
+// MANEJADORES INDIVIDUALES USANDO MODALS
+// ==========================================
 
-    const embed = new EmbedBuilder()
-        .setTitle('Configuración del Límite de Usuarios')
-        .setDescription('Ingresa el nuevo límite de usuarios (0-99, donde 0 = sin límite).')
-        .addFields({
-            name: 'Límite actual',
-            value: formatUserLimit(effective.userLimit),
-            inline: false
-        })
-        .setColor(getColor('info'))
-        .setFooter({ text: 'Escribe el nuevo límite en el chat abajo' });
+/**
+ * Modal para la plantilla de nombre del canal
+ */
+async function handleNameTemplateModal(selectInteraction, triggerChannel, currentConfig, embed, mainMessage) {
+    const modal = new ModalBuilder()
+        .setCustomId(`jtc_modal_name_${selectInteraction.id}`)
+        .setTitle('Cambiar Plantilla de Nombre');
 
-    await interaction.followUp({ embeds: [embed], flags: MessageFlags.Ephemeral });
+    const nameInput = new TextInputBuilder()
+        .setCustomId('input_name_template')
+        .setLabel('Plantilla ({username}, {guild_name})')
+        .setStyle(TextInputStyle.Short)
+        .setValue(currentConfig.nameTemplate || '{username}\'s Channel')
+        .setPlaceholder('Ejemplo: Canal de {username}')
+        .setRequired(true)
+        .setMaxLength(100);
 
-    const collector = interaction.channel.createMessageCollector({
-        filter: (m) => m.author.id === interaction.user.id,
-        time: 600_000,
-        max: 1
-    });
+    modal.addComponents(new ActionRowBuilder().addComponents(nameInput));
 
-    collector.on('collect', async (message) => {
-        try {
-            const rawContent = message.content.trim();
-            if (!/^\d+$/.test(rawContent)) {
-                await replyUserError(interaction, {
-                    type: ErrorTypes.VALIDATION,
-                    message: 'Por favor ingresa un número entero válido entre 0 y 99.'
-                });
-                return;
-            }
+    // IMPORTANTE: Se muestra el modal sin hacer deferUpdate previas
+    await selectInteraction.showModal(modal);
 
-            const newLimit = parseInt(rawContent, 10);
+    const modalSubmit = await selectInteraction.awaitModalSubmit({
+        filter: (i) => i.customId === `jtc_modal_name_${selectInteraction.id}` && i.user.id === selectInteraction.user.id,
+        time: 120_000
+    }).catch(() => null);
 
-            if (newLimit < 0 || newLimit > 99) {
-                await replyUserError(interaction, {
-                    type: ErrorTypes.VALIDATION,
-                    message: 'El límite de usuarios debe estar entre 0 y 99.'
-                });
-                return;
-            }
+    if (!modalSubmit) return;
 
-            const channelOptions = currentConfig.channelOptions || {};
-            channelOptions[triggerChannel.id] = {
-                ...channelOptions[triggerChannel.id],
-                userLimit: newLimit
-            };
+    await modalSubmit.deferUpdate();
+    const newTemplate = modalSubmit.fields.getTextInputValue('input_name_template').trim();
 
-            await updateJoinToCreateConfig(client, interaction.guild.id, {
-                channelOptions: channelOptions
-            });
+    // Actualización en BD y objeto local
+    currentConfig.nameTemplate = newTemplate;
+    await updateJoinToCreateConfig(triggerChannel.guild.id, triggerChannel.id, { nameTemplate: newTemplate });
 
-            await interaction.followUp({
-                embeds: [successEmbed('Límite Actualizado', `El límite de usuarios cambió a ${formatUserLimit(newLimit)}`)],
-                flags: MessageFlags.Ephemeral,
-            });
+    // Actualizar Embed principal
+    embed.setFields(
+        { name: 'Plantilla de Nombre', value: `\`${currentConfig.nameTemplate}\``, inline: true },
+        { name: 'Límite de Usuarios', value: `\`${currentConfig.userLimit ?? 'Sin límite (0)'}\``, inline: true },
+        { name: 'Bitrate', value: `\`${(currentConfig.bitrate || 64000) / 1000} kbps\``, inline: true }
+    );
 
-            await message.delete().catch(() => {});
-        } catch (error) {
-            if (error instanceof TitanBotError) {
-                logger.debug(`Error de validación en límite de usuarios: ${error.message}`);
-            } else {
-                logger.error('Error actualizando límite de usuarios:', error);
-            }
-
-            const errorMessage = error instanceof TitanBotError
-                ? error.userMessage || 'No se pudo actualizar el límite de usuarios.'
-                : 'No se pudo actualizar el límite de usuarios.';
-
-            await replyUserError(interaction, {
-                type: ErrorTypes.CONFIGURATION,
-                message: errorMessage
-            }).catch(() => {});
-        }
-    });
-
-    collector.on('end', (collected, reason) => {
-        if (reason === 'time') {
-            replyUserError(interaction, {
-                type: ErrorTypes.RATE_LIMIT,
-                message: 'No se recibió una respuesta válida. Actualización cancelada.'
-            }).catch(() => {});
-        }
-    });
+    await mainMessage.edit({ embeds: [embed] });
+    await modalSubmit.followUp({ content: `✅ Plantilla de nombre actualizada a: \`${newTemplate}\``, ephemeral: true });
 }
 
-async function handleBitrateChange(interaction, triggerChannel, currentConfig, client) {
-    const effective = getEffectiveOptions(currentConfig, triggerChannel.id);
+/**
+ * Modal para el límite de usuarios
+ */
+async function handleUserLimitModal(selectInteraction, triggerChannel, currentConfig, embed, mainMessage) {
+    const modal = new ModalBuilder()
+        .setCustomId(`jtc_modal_limit_${selectInteraction.id}`)
+        .setTitle('Cambiar Límite de Usuarios');
 
-    const embed = new EmbedBuilder()
-        .setTitle('Configuración de Bitrate')
-        .setDescription('Ingresa el nuevo bitrate en kbps (8-384).')
-        .addFields(
-            {
-                name: 'Bitrate actual',
-                value: `${effective.bitrate / 1000} kbps`,
-                inline: false
-            },
-            {
-                name: 'Valores comunes',
-                value: '• 64 kbps - Calidad normal\n• 96 kbps - Buena calidad\n• 128 kbps - Calidad alta\n• 256 kbps - Calidad muy alta',
-                inline: false
-            }
-        )
-        .setColor(getColor('info'))
-        .setFooter({ text: 'Escribe el nuevo bitrate en el chat abajo' });
+    const limitInput = new TextInputBuilder()
+        .setCustomId('input_user_limit')
+        .setLabel('Límite de usuarios (0 - 99)')
+        .setStyle(TextInputStyle.Short)
+        .setValue(String(currentConfig.userLimit ?? 0))
+        .setPlaceholder('0 = Sin límite')
+        .setRequired(true)
+        .setMaxLength(2);
 
-    await interaction.followUp({ embeds: [embed], flags: MessageFlags.Ephemeral });
+    modal.addComponents(new ActionRowBuilder().addComponents(limitInput));
 
-    const collector = interaction.channel.createMessageCollector({
-        filter: (m) => m.author.id === interaction.user.id,
-        time: 600_000,
-        max: 1
-    });
+    await selectInteraction.showModal(modal);
 
-    collector.on('collect', async (message) => {
-        try {
-            const rawContent = message.content.trim();
-            if (!/^\d+$/.test(rawContent)) {
-                await replyUserError(interaction, {
-                    type: ErrorTypes.VALIDATION,
-                    message: 'Por favor ingresa un número de bitrate válido.'
-                });
-                return;
-            }
+    const modalSubmit = await selectInteraction.awaitModalSubmit({
+        filter: (i) => i.customId === `jtc_modal_limit_${selectInteraction.id}` && i.user.id === selectInteraction.user.id,
+        time: 120_000
+    }).catch(() => null);
 
-            const newBitrate = parseInt(rawContent, 10);
+    if (!modalSubmit) return;
 
-            if (newBitrate < 8 || newBitrate > 384) {
-                await replyUserError(interaction, {
-                    type: ErrorTypes.VALIDATION,
-                    message: 'El bitrate debe estar entre 8 y 384 kbps.'
-                });
-                return;
-            }
+    const rawLimit = modalSubmit.fields.getTextInputValue('input_user_limit').trim();
+    const newLimit = parseInt(rawLimit, 10);
 
-            const channelOptions = currentConfig.channelOptions || {};
-            channelOptions[triggerChannel.id] = {
-                ...channelOptions[triggerChannel.id],
-                bitrate: newBitrate * 1000
-            };
+    // Validación numérica limpia con mensaje nativo del modal
+    if (isNaN(newLimit) || newLimit < 0 || newLimit > 99) {
+        await modalSubmit.reply({
+            content: '❌ Debes ingresar un número entero válido entre **0** y **99**.',
+            ephemeral: true
+        });
+        return;
+    }
 
-            await updateJoinToCreateConfig(client, interaction.guild.id, {
-                channelOptions: channelOptions
-            });
+    await modalSubmit.deferUpdate();
 
-            await interaction.followUp({
-                embeds: [successEmbed('Bitrate Actualizado', `El bitrate cambió a ${newBitrate} kbps`)],
-                flags: MessageFlags.Ephemeral,
-            });
+    currentConfig.userLimit = newLimit;
+    await updateJoinToCreateConfig(triggerChannel.guild.id, triggerChannel.id, { userLimit: newLimit });
 
-            await message.delete().catch(() => {});
-        } catch (error) {
-            if (error instanceof TitanBotError) {
-                logger.debug(`Error de validación de bitrate: ${error.message}`);
-            } else {
-                logger.error('Error al actualizar el bitrate:', error);
-            }
+    embed.setFields(
+        { name: 'Plantilla de Nombre', value: `\`${currentConfig.nameTemplate || '{username}\'s Channel'}\``, inline: true },
+        { name: 'Límite de Usuarios', value: `\`${currentConfig.userLimit === 0 ? 'Sin límite (0)' : currentConfig.userLimit}\``, inline: true },
+        { name: 'Bitrate', value: `\`${(currentConfig.bitrate || 64000) / 1000} kbps\``, inline: true }
+    );
 
-            const errorMessage = error instanceof TitanBotError
-                ? error.userMessage || 'No se pudo actualizar el bitrate.'
-                : 'No se pudo actualizar el bitrate.';
-
-            await replyUserError(interaction, {
-                type: ErrorTypes.CONFIGURATION,
-                message: errorMessage
-            }).catch(() => {});
-        }
-    });
-
-    collector.on('end', (collected, reason) => {
-        if (reason === 'time') {
-            replyUserError(interaction, {
-                type: ErrorTypes.RATE_LIMIT,
-                message: 'No se recibió una respuesta válida. Actualización cancelada.'
-            }).catch(() => {});
-        }
-    });
+    await mainMessage.edit({ embeds: [embed] });
+    await modalSubmit.followUp({ content: `✅ Límite de usuarios actualizado a: **${newLimit === 0 ? 'Sin límite' : newLimit}**`, ephemeral: true });
 }
 
-async function handleRemoveTrigger(interaction, triggerChannel, currentConfig, client) {
-    const embed = new EmbedBuilder()
-        .setTitle('Eliminar Canal Activador')
-        .setDescription(`¿Estás seguro de que deseas eliminar ${triggerChannel} del sistema Join to Create?`)
-        .setColor('#ff6600')
-        .setFooter({ text: 'Esta acción no se puede deshacer' });
+/**
+ * Modal para la tasa de bits (Bitrate)
+ */
+async function handleBitrateModal(selectInteraction, triggerChannel, currentConfig, embed, mainMessage) {
+    const guildMaxBitrate = selectInteraction.guild.maximumBitrate / 1000; // En kbps (80, 96, 128, 256, 384 según Boost Level)
 
-    const row = new ActionRowBuilder().addComponents(
+    const modal = new ModalBuilder()
+        .setCustomId(`jtc_modal_bitrate_${selectInteraction.id}`)
+        .setTitle('Ajustar Bitrate');
+
+    const bitrateInput = new TextInputBuilder()
+        .setCustomId('input_bitrate')
+        .setLabel(`Bitrate en kbps (8 - ${guildMaxBitrate})`)
+        .setStyle(TextInputStyle.Short)
+        .setValue(String((currentConfig.bitrate || 64000) / 1000))
+        .setPlaceholder(`Ejemplo: 64`)
+        .setRequired(true)
+        .setMaxLength(3);
+
+    modal.addComponents(new ActionRowBuilder().addComponents(bitrateInput));
+
+    await selectInteraction.showModal(modal);
+
+    const modalSubmit = await selectInteraction.awaitModalSubmit({
+        filter: (i) => i.customId === `jtc_modal_bitrate_${selectInteraction.id}` && i.user.id === selectInteraction.user.id,
+        time: 120_000
+    }).catch(() => null);
+
+    if (!modalSubmit) return;
+
+    const rawBitrate = modalSubmit.fields.getTextInputValue('input_bitrate').trim();
+    const kbps = parseInt(rawBitrate, 10);
+
+    if (isNaN(kbps) || kbps < 8 || kbps > guildMaxBitrate) {
+        await modalSubmit.reply({
+            content: `❌ Por favor ingresa un valor numérico válido entre **8** y **${guildMaxBitrate}** kbps para este servidor.`,
+            ephemeral: true
+        });
+        return;
+    }
+
+    await modalSubmit.deferUpdate();
+
+    const bps = kbps * 1000;
+    currentConfig.bitrate = bps;
+    await updateJoinToCreateConfig(triggerChannel.guild.id, triggerChannel.id, { bitrate: bps });
+
+    embed.setFields(
+        { name: 'Plantilla de Nombre', value: `\`${currentConfig.nameTemplate || '{username}\'s Channel'}\``, inline: true },
+        { name: 'Límite de Usuarios', value: `\`${currentConfig.userLimit ?? 'Sin límite (0)'}\``, inline: true },
+        { name: 'Bitrate', value: `\`${kbps} kbps\``, inline: true }
+    );
+
+    await mainMessage.edit({ embeds: [embed] });
+    await modalSubmit.followUp({ content: `✅ Bitrate actualizado a: **${kbps} kbps**`, ephemeral: true });
+}
+
+/**
+ * Confirmación vía botones para la eliminación del activador JTC
+ */
+async function handleDeleteTrigger(selectInteraction, triggerChannel, mainMessage, menuCollector) {
+    await selectInteraction.deferUpdate();
+
+    const confirmRow = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
-            .setCustomId(`confirm_remove_${triggerChannel.id}`)
-            .setLabel('Eliminar Canal')
+            .setCustomId(`confirm_del_${selectInteraction.id}`)
+            .setLabel('Sí, eliminar activador')
             .setStyle(ButtonStyle.Danger),
         new ButtonBuilder()
-            .setCustomId(`cancel_remove_${triggerChannel.id}`)
+            .setCustomId(`cancel_del_${selectInteraction.id}`)
             .setLabel('Cancelar')
             .setStyle(ButtonStyle.Secondary)
     );
 
-    await interaction.followUp({ 
-        embeds: [embed], 
-        components: [row],
-        flags: MessageFlags.Ephemeral 
+    const confirmMsg = await selectInteraction.followUp({
+        content: '⚠️ **¿Estás seguro de que deseas eliminar este canal activador JTC?** Esta acción borrará la configuración y el canal.',
+        components: [confirmRow],
+        ephemeral: true,
+        fetchReply: true
     });
 
-    const collector = interaction.channel.createMessageComponentCollector({
-        componentType: ComponentType.Button,
-        filter: (i) => i.user.id === interaction.user.id && 
-                     (i.customId === `confirm_remove_${triggerChannel.id}` || i.customId === `cancel_remove_${triggerChannel.id}`),
-        time: 600_000,
-        max: 1
-    });
+    const btnInteraction = await confirmMsg.awaitMessageComponent({
+        filter: (i) => i.user.id === selectInteraction.user.id,
+        time: 30_000,
+        componentType: ComponentType.Button
+    }).catch(() => null);
 
-    collector.on('collect', async (buttonInteraction) => {
-        await buttonInteraction.deferUpdate();
+    if (!btnInteraction) {
+        await selectInteraction.editReply({ content: '⏳ Tiempo de espera agotado. Eliminación cancelada.', components: [] }).catch(() => {});
+        return;
+    }
 
-        if (buttonInteraction.customId === `confirm_remove_${triggerChannel.id}`) {
-            try {
-                const success = await removeJoinToCreateTrigger(client, interaction.guild.id, triggerChannel.id);
+    if (btnInteraction.customId === `confirm_del_${selectInteraction.id}`) {
+        await btnInteraction.deferUpdate();
+        
+        // 1. Eliminar de la base de datos
+        await deleteJoinToCreateConfig(triggerChannel.guild.id, triggerChannel.id);
+        
+        // 2. Detener el colector del menú principal
+        menuCollector.stop('deleted');
 
-                if (success) {
-                    await buttonInteraction.followUp({
-                        embeds: [successEmbed('Canal Eliminado', `${triggerChannel} ha sido eliminado del sistema Join to Create.`)],
-                        flags: MessageFlags.Ephemeral,
-                    });
-                } else {
-                    await replyUserError(buttonInteraction, {
-                        type: ErrorTypes.CONFIGURATION,
-                        message: 'No se pudo eliminar el canal activador.'
-                    });
-                }
-            } catch (error) {
-                if (error instanceof TitanBotError) {
-                    logger.debug(`Error de validación al eliminar activador: ${error.message}`);
-                } else {
-                    logger.error('Error al eliminar canal activador:', error);
-                }
+        // 3. Notificar y eliminar el canal de voz en Discord
+        await btnInteraction.editReply({
+            content: '✅ El activador Join to Create y su configuración han sido eliminados correctamente.',
+            components: []
+        });
 
-                const errorMessage = error instanceof TitanBotError
-                    ? error.userMessage || 'Ocurrió un error al eliminar el canal activador.'
-                    : 'Ocurrió un error al eliminar el canal activador.';
+        await mainMessage.edit({ content: '🔒 Este panel ha sido desactivado porque el canal fue eliminado.', embeds: [], components: [] }).catch(() => {});
+        await triggerChannel.delete('Eliminación de canal activador JTC').catch(() => {});
 
-                await replyUserError(buttonInteraction, {
-                    type: ErrorTypes.CONFIGURATION,
-                    message: errorMessage
-                }).catch(() => {});
-            }
-        } else {
-            await buttonInteraction.followUp({
-                embeds: [successEmbed('Cancelado', 'La eliminación del canal ha sido cancelada.')],
-                flags: MessageFlags.Ephemeral,
-            });
-        }
-    });
-
-    collector.on('end', (collected, reason) => {
-        if (reason === 'time') {
-            replyUserError(interaction, {
-                type: ErrorTypes.RATE_LIMIT,
-                message: 'No se recibió respuesta. Eliminación cancelada.'
-            }).catch(() => {});
-        }
-    });
-}
-
-async function handleViewSettings(interaction, triggerChannel, currentConfig, client) {
-    const effective = getEffectiveOptions(currentConfig, triggerChannel.id);
-
-    const embed = new EmbedBuilder()
-        .setTitle('Configuración Actual')
-        .setDescription(`Ajustes para ${triggerChannel}`)
-        .setColor(getColor('info'))
-        .addFields(
-            {
-                name: 'Canal activador',
-                value: `${triggerChannel} (${triggerChannel.id})`,
-                inline: false
-            },
-            {
-                name: 'Plantilla de nombre',
-                value: `\`${effective.nameTemplate}\``,
-                inline: false
-            },
-            {
-                name: 'Límite de usuarios',
-                value: formatUserLimit(effective.userLimit),
-                inline: true
-            },
-            {
-                name: 'Bitrate',
-                value: `${effective.bitrate / 1000} kbps`,
-                inline: true
-            },
-            {
-                name: 'Categoría',
-                value: currentConfig.categoryId ? `<#${currentConfig.categoryId}>` : 'No configurada',
-                inline: true
-            },
-            {
-                name: 'Estado del sistema',
-                value: currentConfig.enabled ? '✅ Habilitado' : '❌ Deshabilitado',
-                inline: true
-            },
-            {
-                name: 'Canales temporales activos',
-                value: Object.keys(currentConfig.temporaryChannels || {}).length.toString(),
-                inline: true
-            }
-        )
-        .setTimestamp();
-
-    await interaction.followUp({ 
-        embeds: [embed], 
-        flags: MessageFlags.Ephemeral 
-    });
+    } else {
+        await btnInteraction.update({
+            content: '❌ Eliminación cancelada. El canal permanece activo.',
+            components: []
+        });
+    }
 }
