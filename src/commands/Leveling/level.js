@@ -10,18 +10,18 @@ import levelDashboard from './modules/level_dashboard.js';
 
 export default {
     data: new SlashCommandBuilder()
-        .setName('nivel')
-        .setDescription('Gestiona el sistema de niveles')
+        .setName('level')
+        .setDescription('Administra el sistema de nivelacion')
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
         .setDMPermission(false)
         .addSubcommand((subcommand) =>
             subcommand
-                .setName('configurar')
-                .setDescription('Configura el sistema de niveles esto tambien lo activa')
+                .setName('setup')
+                .setDescription('Configura el sistema de nivelacion esto tambien lo activa')
                 .addChannelOption((option) =>
                     option
-                        .setName('canal')
-                        .setDescription('Canal para enviar las notificaciones de subida de nivel')
+                        .setName('channel')
+                        .setDescription('Canal donde se enviaran las notificaciones de subida de nivel')
                         .addChannelTypes(ChannelType.GuildText)
                         .setRequired(true),
                 )
@@ -43,9 +43,9 @@ export default {
                 )
                 .addStringOption((option) =>
                     option
-                        .setName('mensaje')
+                        .setName('message')
                         .setDescription(
-                            'Mensaje de subida de nivel Usa {user} y {level} como marcadores',
+                            'Mensaje de subida de nivel Usa {user} y {level} como marcadores valor por defecto incluido',
                         )
                         .setMaxLength(500)
                         .setRequired(false),
@@ -61,10 +61,10 @@ export default {
         )
         .addSubcommand((subcommand) =>
             subcommand
-                .setName('panel')
-                .setDescription('Abre el panel interactivo de configuracion de niveles'),
+                .setName('dashboard')
+                .setDescription('Abre el panel interactivo de configuracion de nivelacion'),
         ),
-    category: 'Nivelacion',
+    category: 'Leveling',
 
     async execute(interaction, config, client) {
         const deferred = await InteractionHelper.safeDefer(interaction, {
@@ -78,35 +78,35 @@ export default {
 
         const subcommand = interaction.options.getSubcommand();
 
-        if (subcommand === 'panel') {
+        if (subcommand === 'dashboard') {
             return levelDashboard.execute(interaction, config, client);
         }
 
-        if (subcommand === 'configurar') {
-            const channel = interaction.options.getChannel('canal');
+        if (subcommand === 'setup') {
+            const channel = interaction.options.getChannel('channel');
             const xpMin = interaction.options.getInteger('xp_min') ?? 15;
             const xpMax = interaction.options.getInteger('xp_max') ?? 25;
             const message =
-                interaction.options.getString('mensaje') ??
+                interaction.options.getString('message') ??
                 '{user} ha subido al nivel {level}';
             const xpCooldown = interaction.options.getInteger('xp_cooldown') ?? 60;
 
             if (xpMin > xpMax) {
-                return await replyUserError(interaction, { type: ErrorTypes.VALIDATION, message: `La XP minima **${xpMin}** no puede ser mayor que la XP maxima **${xpMax}**` });
+                return await replyUserError(interaction, { type: ErrorTypes.VALIDATION, message: `La XP minima (**${xpMin}**) no puede ser mayor que la XP maxima (**${xpMax}**)` });
             }
 
             if (!botHasPermission(channel, ['SendMessages', 'EmbedLinks'])) {
                 throw new TitanBotError(
                     'El bot no tiene permisos en el canal especificado',
                     ErrorTypes.PERMISSION,
-                    `Necesito permisos de **SendMessages** y **EmbedLinks** en ${channel} para enviar notificaciones de nivel`,
+                    `Necesito permisos de **SendMessages** y **EmbedLinks** en ${channel} para enviar notificaciones de subida de nivel`,
                 );
             }
 
             const existingConfig = await getLevelingConfig(client, interaction.guildId);
 
             if (existingConfig.configured) {
-                return await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: `El sistema de niveles ya esta configurado en este servidor las notificaciones van a <#${existingConfig.levelUpChannel}>\n\nUsa \`/nivel panel\` para ajustar cualquier configuracion` });
+                return await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: `El sistema de nivelacion ya esta configurado en este servidor las notificaciones van a <#${existingConfig.levelUpChannel}>\n\nUsa \`/level dashboard\` para ajustar cualquier configuracion` });
             }
 
             const newConfig = {
@@ -122,7 +122,7 @@ export default {
 
             await saveLevelingConfig(client, interaction.guildId, newConfig);
 
-            logger.info(`Sistema de niveles configurado en el servidor ${interaction.guildId}`, {
+            logger.info(`Sistema de nivelacion configurado en el servidor ${interaction.guildId}`, {
                 channelId: channel.id,
                 xpMin,
                 xpMax,
@@ -133,14 +133,14 @@ export default {
             return await InteractionHelper.safeEditReply(interaction, {
                 embeds: [
                     createEmbed({
-                        title: 'Sistema de niveles configurado',
+                        title: 'Sistema de nivelacion configurado',
                         description:
-                            `El sistema de niveles ahora esta **activado** y listo para usar\n\n` +
+                            `El sistema de nivelacion ahora esta **activado** y listo para usarse\n\n` +
                             `**Canal de subida de nivel:** ${channel}\n` +
                             `**XP por mensaje:** ${xpMin} – ${xpMax}\n` +
                             `**Tiempo de recarga de XP:** ${xpCooldown}s\n` +
                             `**Mensaje de subida de nivel:** \`${message}\`\n\n` +
-                            `Usa \`/nivel panel\` para ajustar cualquiera de estas configuraciones en cualquier momento`,
+                            `Usa \`/level dashboard\` para ajustar cualquiera de estas configuraciones en cualquier momento`,
                         color: 'success',
                     }),
                 ],
