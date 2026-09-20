@@ -6,20 +6,21 @@ import { setUserLevel, getLevelingConfig } from '../../services/leveling/levelin
 import { createEmbed } from '../../utils/embeds.js';
 
 import { InteractionHelper } from '../../utils/interactionHelper.js';
+
 export default {
   data: new SlashCommandBuilder()
     .setName('levelset')
-    .setDescription("Set a user's level to a specific value")
+    .setDescription("Establecer el nivel de un usuario a un valor especifico")
     .addUserOption((option) =>
       option
         .setName('user')
-        .setDescription('The user to set the level for')
+        .setDescription('El usuario al que se le establecera el nivel')
         .setRequired(true)
     )
     .addIntegerOption((option) =>
       option
         .setName('level')
-        .setDescription('The level to set')
+        .setDescription('El nivel a establecer')
         .setRequired(true)
         .setMinValue(0)
     )
@@ -33,7 +34,7 @@ export default {
     const hasPermission = await checkUserPermissions(
       interaction,
       PermissionFlagsBits.ManageGuild,
-      'You need ManageGuild permission to use this command.'
+      'Necesitas el permiso ManageGuild para usar este comando'
     );
     if (!hasPermission) return;
 
@@ -43,7 +44,7 @@ export default {
         embeds: [
           new EmbedBuilder()
             .setColor('#f1c40f')
-            .setDescription('The leveling system is currently disabled on this server.')
+            .setDescription('El sistema de nivelacion esta actualmente desactivado en este servidor')
         ],
         flags: MessageFlags.Ephemeral
       });
@@ -56,9 +57,9 @@ export default {
     const member = await interaction.guild.members.fetch(targetUser.id).catch(() => null);
     if (!member) {
       throw new TitanBotError(
-        `User ${targetUser.id} not found in this guild`,
+        `Usuario ${targetUser.id} no encontrado en este servidor`,
         ErrorTypes.USER_INPUT,
-        'The specified user is not in this server.'
+        'El usuario especificado no esta en este servidor'
       );
     }
 
@@ -67,15 +68,15 @@ export default {
     await InteractionHelper.safeEditReply(interaction, {
       embeds: [
         createEmbed({
-          title: 'Level Set',
-          description: `Successfully set ${targetUser.tag}'s level to **${newLevel}**.\n**Total XP:** ${userData.totalXp}`,
+          title: 'Nivel establecido',
+          description: `Se establecio con exito el nivel de ${targetUser.tag} en **${newLevel}**\n**XP total:** ${userData.totalXp}`,
           color: 'success'
         })
       ]
     });
 
     logger.info(
-      `[ADMIN] User ${interaction.user.tag} set ${targetUser.tag}'s level to ${newLevel} in guild ${interaction.guildId}`
+      `[ADMIN] El usuario ${interaction.user.tag} establecio el nivel de ${targetUser.tag} en ${newLevel} en el servidor ${interaction.guildId}`
     );
   }
 };
