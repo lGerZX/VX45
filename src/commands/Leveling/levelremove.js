@@ -6,20 +6,21 @@ import { removeLevels, getUserLevelData, getLevelingConfig } from '../../service
 import { createEmbed } from '../../utils/embeds.js';
 
 import { InteractionHelper } from '../../utils/interactionHelper.js';
+
 export default {
   data: new SlashCommandBuilder()
     .setName('levelremove')
-    .setDescription('Remove levels from a user')
+    .setDescription('Quitar niveles a un usuario')
     .addUserOption((option) =>
       option
         .setName('user')
-        .setDescription('The user to remove levels from')
+        .setDescription('El usuario al que se le quitaran niveles')
         .setRequired(true)
     )
     .addIntegerOption((option) =>
       option
         .setName('levels')
-        .setDescription('Number of levels to remove')
+        .setDescription('Numero de niveles a quitar')
         .setRequired(true)
         .setMinValue(1)
     )
@@ -33,7 +34,7 @@ export default {
     const hasPermission = await checkUserPermissions(
       interaction,
       PermissionFlagsBits.ManageGuild,
-      'You need ManageGuild permission to use this command.'
+      'Necesitas el permiso ManageGuild para usar este comando'
     );
     if (!hasPermission) return;
 
@@ -43,7 +44,7 @@ export default {
         embeds: [
           new EmbedBuilder()
             .setColor('#f1c40f')
-            .setDescription('The leveling system is currently disabled on this server.')
+            .setDescription('El sistema de nivelacion esta actualmente desactivado en este servidor')
         ],
         flags: MessageFlags.Ephemeral
       });
@@ -56,18 +57,18 @@ export default {
     const member = await interaction.guild.members.fetch(targetUser.id).catch(() => null);
     if (!member) {
       throw new TitanBotError(
-        `User ${targetUser.id} not found in this guild`,
+        `Usuario ${targetUser.id} no encontrado en este servidor`,
         ErrorTypes.USER_INPUT,
-        'The specified user is not in this server.'
+        'El usuario especificado no esta en este servidor'
       );
     }
 
     const userData = await getUserLevelData(client, interaction.guildId, targetUser.id);
     if (userData.level === 0) {
       throw new TitanBotError(
-        `User ${targetUser.id} is already at minimum level`,
+        `El usuario ${targetUser.id} ya esta en el nivel minimo`,
         ErrorTypes.VALIDATION,
-        `${targetUser.tag} is already at level 0 and cannot have levels removed.`
+        `${targetUser.tag} ya esta en el nivel 0 y no se le pueden quitar niveles`
       );
     }
 
@@ -76,15 +77,15 @@ export default {
     await InteractionHelper.safeEditReply(interaction, {
       embeds: [
         createEmbed({
-          title: 'Levels Removed',
-          description: `Successfully removed ${levelsToRemove} levels from ${targetUser.tag}.\n**New Level:** ${updatedData.level}`,
+          title: 'Niveles quitados',
+          description: `Se quitaron con exito ${levelsToRemove} niveles a ${targetUser.tag}\n**Nuevo nivel:** ${updatedData.level}`,
           color: 'success'
         })
       ]
     });
 
     logger.info(
-      `[ADMIN] User ${interaction.user.tag} removed ${levelsToRemove} levels from ${targetUser.tag} in guild ${interaction.guildId}`
+      `[ADMIN] El usuario ${interaction.user.tag} quito ${levelsToRemove} niveles a ${targetUser.tag} en el servidor ${interaction.guildId}`
     );
   }
 };
