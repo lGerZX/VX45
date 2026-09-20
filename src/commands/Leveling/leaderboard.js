@@ -7,10 +7,10 @@ import { InteractionHelper } from '../../utils/interactionHelper.js';
 
 export default {
   data: new SlashCommandBuilder()
-    .setName('clasificacion')
-    .setDescription("Muestra la tabla de clasificacion de niveles del servidor")
+    .setName('leaderboard')
+    .setDescription("Muestra la tabla de clasificacion de nivel del servidor")
     .setDMPermission(false),
-  category: 'Nivelacion',
+  category: 'Leveling',
 
   async execute(interaction, config, client) {
     await InteractionHelper.safeDefer(interaction);
@@ -22,7 +22,7 @@ export default {
         embeds: [
           new EmbedBuilder()
             .setColor('#f1c40f')
-            .setDescription('El sistema de niveles esta actualmente desactivado en este servidor')
+            .setDescription('El sistema de nivelacion esta actualmente desactivado en este servidor')
         ],
         flags: MessageFlags.Ephemeral
       });
@@ -35,14 +35,14 @@ export default {
       throw new TitanBotError(
         'No se encontraron datos de la tabla de clasificacion',
         ErrorTypes.DATABASE,
-        'Aun no hay datos de nivel Empieza a chatear para ganar XP'
+        'Aun no se encuentran datos de nivel Empieza a chatear para ganar XP'
       );
     }
 
     const embed = new EmbedBuilder()
-      .setTitle('Tabla de clasificacion de niveles')
+      .setTitle('Tabla de clasificacion de nivel')
       .setColor('#2ecc71')
-      .setDescription("Top 10 miembros mas activos en este servidor")
+      .setDescription("Los 10 miembros mas activos en este servidor")
       .setTimestamp();
 
     const leaderboardText = await Promise.all(
@@ -60,7 +60,7 @@ export default {
 
           return `${rankPrefix} ${userMention} - Nivel ${user.level} (${user.xp}/${xpForNextLevel} XP)`;
         } catch {
-          return `**${index + 1}** Error al cargar usuario ${user.userId}`;
+          return `**${index + 1}** Error al cargar el usuario ${user.userId}`;
         }
       })
     );
