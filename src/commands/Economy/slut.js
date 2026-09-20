@@ -8,36 +8,36 @@ import { InteractionHelper } from '../../utils/interactionHelper.js';
 const SLUT_COOLDOWN = 45 * 60 * 1000;
 
 const SLUT_ACTIVITIES = [
-    { name: "Cam Stream", min: 120, max: 450, risk: 0.2 },
-    { name: "Private Dance Session", min: 220, max: 700, risk: 0.25 },
-    { name: "After-Hours Club Host", min: 320, max: 900, risk: 0.3 },
-    { name: "VIP Companion Booking", min: 550, max: 1400, risk: 0.35 },
-    { name: "Exclusive Livestream", min: 850, max: 2200, risk: 0.4 },
+    { name: "Transmision en vivo", min: 120, max: 450, risk: 0.2 },
+    { name: "Sesion de baile privado", min: 220, max: 700, risk: 0.25 },
+    { name: "Anfitrion de club nocturno", min: 320, max: 900, risk: 0.3 },
+    { name: "Reserva de compania VIP", min: 550, max: 1400, risk: 0.35 },
+    { name: "Transmision exclusiva", min: 850, max: 2200, risk: 0.4 },
 ];
 
 const POSITIVE_OUTCOMES = [
-    "Your stream blew up and tips poured in.",
-    "A VIP booking paid far above average.",
-    "Your after-hours shift was packed and profitable.",
-    "Premium requests came through and your payout jumped.",
+    "Tu transmision fue un exito y llegaron muchas propinas",
+    "Una reserva VIP pago mucho mas del promedio",
+    "Tu turno nocturno estuvo lleno y fue muy lucrativo",
+    "Llegaron solicitudes premium y tu pago aumento",
 ];
 
 const FINE_OUTCOMES = [
-    "Venue security issued a compliance fine.",
-    "A moderation strike triggered a platform fee.",
-    "You were flagged and had to pay a penalty.",
+    "La seguridad del local aplico una multa de cumplimiento",
+    "Una sancion de moderacion genero una tarifa de plataforma",
+    "Fuiste marcado y tuviste que pagar una penalizacion",
 ];
 
 const ROBBED_OUTCOMES = [
-    "A fake buyer chargeback wiped part of your earnings.",
-    "A scam booking cleaned out a chunk of your cash.",
-    "You got baited by a fraud account and lost money.",
+    "Un contracargo de un comprador falso borro parte de tus ganancias",
+    "Una reserva falsa se llevo una parte de tu dinero",
+    "Caiste en una cuenta fraudulenta y perdiste dinero",
 ];
 
 const LOSS_OUTCOMES = [
-    "The set flopped and you had to cover operating costs.",
-    "You burned budget on prep and made no return.",
-    "The shift went sideways and left you in the red.",
+    "El show fue un fracaso y tuviste que cubrir los costos de operacion",
+    "Gastaste presupuesto en preparacion sin obtener ganancias",
+    "El turno salio mal y quedaste en numeros rojos",
 ];
 
 function randomInt(min, max) {
@@ -60,7 +60,7 @@ function resolveOutcome(activity, wallet) {
             type: 'payout',
             delta: amount,
             message: randomChoice(POSITIVE_OUTCOMES),
-            title: `${activity.name} - Payout`
+            title: `${activity.name} - Pago`
         };
     }
 
@@ -74,7 +74,7 @@ function resolveOutcome(activity, wallet) {
             type: 'fine',
             delta: -amount,
             message: randomChoice(FINE_OUTCOMES),
-            title: `${activity.name} - Fined`
+            title: `${activity.name} - Multado`
         };
     }
 
@@ -86,7 +86,7 @@ function resolveOutcome(activity, wallet) {
             type: 'robbed',
             delta: -amount,
             message: randomChoice(ROBBED_OUTCOMES),
-            title: `${activity.name} - Robbed`
+            title: `${activity.name} - Robado`
         };
     }
 
@@ -97,92 +97,92 @@ function resolveOutcome(activity, wallet) {
         type: 'loss',
         delta: -amount,
         message: randomChoice(LOSS_OUTCOMES),
-        title: `${activity.name} - Loss`
+        title: `${activity.name} - Perdida`
     };
 }
 
 export default {
     data: new SlashCommandBuilder()
         .setName('slut')
-        .setDescription('Take a risky provocative job for random payout or loss'),
+        .setDescription('Toma un trabajo de riesgo para ganar o perder dinero'),
 
     execute: withErrorHandling(async (interaction, config, client) => {
         const deferred = await InteractionHelper.safeDefer(interaction);
         if (!deferred) return;
 
-            const userId = interaction.user.id;
-            const guildId = interaction.guildId;
-            const now = Date.now();
+        const userId = interaction.user.id;
+        const guildId = interaction.guildId;
+        const now = Date.now();
 
-            logger.debug(`[ECONOMY] Slut command started for ${userId}`, { userId, guildId });
+        logger.debug(`[ECONOMY] Slut command started for ${userId}`, { userId, guildId });
 
-            const userData = await getEconomyData(client, guildId, userId);
+        const userData = await getEconomyData(client, guildId, userId);
 
-            if (!userData) {
-                throw createError(
-                    "Failed to load economy data for slut command",
-                    ErrorTypes.DATABASE,
-                    "Failed to load your economy data. Please try again later.",
-                    { userId, guildId }
-                );
-            }
+        if (!userData) {
+            throw createError(
+                "Failed to load economy data for slut command",
+                ErrorTypes.DATABASE,
+                "Error al cargar tus datos de economia intentalo mas tarde",
+                { userId, guildId }
+            );
+        }
 
-            const lastSlut = userData.lastSlut || 0;
+        const lastSlut = userData.lastSlut || 0;
 
-            if (now - lastSlut < SLUT_COOLDOWN) {
-                const remainingTime = lastSlut + SLUT_COOLDOWN - now;
-                throw createError(
-                    "Slut cooldown active",
-                    ErrorTypes.RATE_LIMIT,
-                    `You need to wait before you can work again! Try again in **${Math.ceil(remainingTime / 60000)}** minutes.`,
-                    { timeRemaining: remainingTime, cooldownType: 'slut' }
-                );
-            }
+        if (now - lastSlut < SLUT_COOLDOWN) {
+            const remainingTime = lastSlut + SLUT_COOLDOWN - now;
+            throw createError(
+                "Slut cooldown active",
+                ErrorTypes.RATE_LIMIT,
+                `Debes esperar antes de volver a trabajar Intenta de nuevo en **${Math.ceil(remainingTime / 60000)}** minutos`,
+                { timeRemaining: remainingTime, cooldownType: 'slut' }
+            );
+        }
 
-            const activity = randomChoice(SLUT_ACTIVITIES);
+        const activity = randomChoice(SLUT_ACTIVITIES);
 
-            const outcome = resolveOutcome(activity, userData.wallet || 0);
+        const outcome = resolveOutcome(activity, userData.wallet || 0);
 
-            userData.lastSlut = now;
-            userData.totalSluts = (userData.totalSluts || 0) + 1;
-            userData.totalSlutEarnings = (userData.totalSlutEarnings || 0) + Math.max(0, outcome.delta);
-            userData.totalSlutLosses = (userData.totalSlutLosses || 0) + Math.max(0, -outcome.delta);
+        userData.lastSlut = now;
+        userData.totalSluts = (userData.totalSluts || 0) + 1;
+        userData.totalSlutEarnings = (userData.totalSlutEarnings || 0) + Math.max(0, outcome.delta);
+        userData.totalSlutLosses = (userData.totalSlutLosses || 0) + Math.max(0, -outcome.delta);
 
-            if (outcome.type !== 'payout') {
-                userData.failedSluts = (userData.failedSluts || 0) + 1;
-            }
+        if (outcome.type !== 'payout') {
+            userData.failedSluts = (userData.failedSluts || 0) + 1;
+        }
 
-            userData.wallet = Math.max(0, (userData.wallet || 0) + outcome.delta);
+        userData.wallet = Math.max(0, (userData.wallet || 0) + outcome.delta);
 
-            await setEconomyData(client, guildId, userId, userData);
+        await setEconomyData(client, guildId, userId, userData);
 
-            logger.info(`[ECONOMY_TRANSACTION] Slut activity resolved`, {
-                userId,
-                guildId,
-                activity: activity.name,
-                outcomeType: outcome.type,
-                amountDelta: outcome.delta,
-                newWallet: userData.wallet,
-                timestamp: new Date().toISOString()
-            });
+        logger.info(`[ECONOMY_TRANSACTION] Slut activity resolved`, {
+            userId,
+            guildId,
+            activity: activity.name,
+            outcomeType: outcome.type,
+            amountDelta: outcome.delta,
+            newWallet: userData.wallet,
+            timestamp: new Date().toISOString()
+        });
 
-            const amountLabel = `${outcome.delta >= 0 ? '+' : '-'}$${Math.abs(outcome.delta).toLocaleString()}`;
-            const summaryLines = [
-                `${outcome.message}`,
-                `💸 **Net Result:** ${amountLabel}`,
-                `💳 **Current Balance:** $${userData.wallet.toLocaleString()}`,
-                `📊 **Total Sessions:** ${userData.totalSluts}`,
-                `💵 **Total Earned:** $${(userData.totalSlutEarnings || 0).toLocaleString()}`,
-                `🧾 **Total Lost:** $${(userData.totalSlutLosses || 0).toLocaleString()}`
-            ];
+        const amountLabel = `${outcome.delta >= 0 ? '+' : '-'}$${Math.abs(outcome.delta).toLocaleString()}`;
+        const summaryLines = [
+            `${outcome.message}`,
+            `💸 **Resultado neto:** ${amountLabel}`,
+            `💳 **Saldo actual:** $${userData.wallet.toLocaleString()}`,
+            `📊 **Sesiones totales:** ${userData.totalSluts}`,
+            `💵 **Total ganado:** $${(userData.totalSlutEarnings || 0).toLocaleString()}`,
+            `🧾 **Total perdido:** $${(userData.totalSlutLosses || 0).toLocaleString()}`
+        ];
 
-            const embed = createEmbed({
-                title: outcome.title,
-                description: summaryLines.join('\n'),
-                color: outcome.delta >= 0 ? 'success' : 'error',
-                timestamp: true
-            });
+        const embed = createEmbed({
+            title: outcome.title,
+            description: summaryLines.join('\n'),
+            color: outcome.delta >= 0 ? 'success' : 'error',
+            timestamp: true
+        });
 
-            await InteractionHelper.safeEditReply(interaction, { embeds: [embed] });
+        await InteractionHelper.safeEditReply(interaction, { embeds: [embed] });
     }, { command: 'slut' })
 };
