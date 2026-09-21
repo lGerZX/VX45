@@ -22,7 +22,7 @@ export default {
     category: 'Music',
     data: new SlashCommandBuilder()
         .setName('music')
-        .setDescription('Gestiona la reproduccion la cola y la configuracion de la sesion de voz')
+        .setDescription('Gestiona la reproduccion la cola')
         .addSubcommand((sub) =>
             sub.setName('pause').setDescription('Pausar la reproduccion'),
         )
