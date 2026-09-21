@@ -7,7 +7,7 @@ export default {
     category: 'Music',
     data: new SlashCommandBuilder()
         .setName('nowplaying')
-        .setDescription('Show the currently playing track'),
+        .setDescription('Mostrar la pista que se esta reproduciendo actualmente'),
 
     async execute(interaction, config, client) {
         await deferMusicCommand(interaction);
