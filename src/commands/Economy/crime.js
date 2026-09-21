@@ -94,7 +94,7 @@ const CRIME_TYPES = {
 export default {
     data: new SlashCommandBuilder()
         .setName('crime')
-        .setDescription('Comete un crimen para ganar dinero (riesgoso)')
+        .setDescription('Comete un crimen para ganar dinero')
         .addStringOption(option =>
             option
                 .setName('tipo')
