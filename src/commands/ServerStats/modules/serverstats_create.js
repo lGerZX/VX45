@@ -19,13 +19,13 @@ export async function handleCreate(interaction, client) {
     }
 
     if (!interaction.member.permissions.has(PermissionFlagsBits.ManageChannels)) {
-        await replyUserError(interaction, { type: ErrorTypes.PERMISSION, message: 'You need **Manage Channels** permission to create counters.' }).catch(logger.error);
+        await replyUserError(interaction, { type: ErrorTypes.PERMISSION, message: 'Necesitas el permiso **Manage Channels** para crear contadores' }).catch(logger.error);
         return;
     }
 
     try {
         if (!category || category.type !== ChannelType.GuildCategory) {
-            await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: 'Please select a valid category for the counter channel.' }).catch(logger.error);
+            await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: 'Por favor selecciona una categoria valida para el canal de contador' }).catch(logger.error);
             return;
         }
 
@@ -38,7 +38,7 @@ export async function handleCreate(interaction, client) {
 
         if (duplicateType) {
             const duplicateChannel = guild.channels.cache.get(duplicateType.channelId);
-            await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: `A **${getCounterTypeLabel(type)}** counter already exists for this server${duplicateChannel ? ` in ${duplicateChannel}` : ''}. Delete it first before creating another.` }).catch(logger.error);
+            await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: `Ya existe un contador de **${getCounterTypeLabel(type)}** para este servidor${duplicateChannel ? ` en ${duplicateChannel}` : ''} Eliminalo primero antes de crear otro` }).catch(logger.error);
             return;
         }
 
@@ -51,7 +51,7 @@ export async function handleCreate(interaction, client) {
 
         const existingCounter = counters.find(c => c.channelId === targetChannel.id);
         if (existingCounter) {
-            await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: `A counter already exists for channel **${targetChannel.name}**. Please delete it first or choose a different type.` }).catch(logger.error);
+            await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: `Ya existe un contador para el canal **${targetChannel.name}**. Por favor eliminalo primero o elige un tipo diferente` }).catch(logger.error);
             return;
         }
 
@@ -69,22 +69,22 @@ export async function handleCreate(interaction, client) {
         const saved = await saveServerCounters(client, guild.id, counters);
         if (!saved) {
             await targetChannel.delete('Counter creation failed during save').catch(() => null);
-            await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: 'Failed to save counter data. Please try again.' }).catch(logger.error);
+            await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: 'Fallo al guardar los datos del contador Por favor intenta de nuevo' }).catch(logger.error);
             return;
         }
 
         const updated = await updateCounter(client, guild, newCounter);
         if (!updated) {
-            await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: 'Counter created but failed to update channel name. The counter will update on the next scheduled run.' }).catch(logger.error);
+            await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: 'Contador creado pero fallo al actualizar el nombre del canal El contador se actualizara en la siguiente ejecucion programada' }).catch(logger.error);
             return;
         }
 
         await InteractionHelper.safeEditReply(interaction, {
-            embeds: [successEmbed(`**Counter Created Successfully!**\n\n**Type:** ${getCounterTypeLabel(type)}\n**Channel Type:** ${targetChannel.type === ChannelType.GuildVoice ? 'voice' : 'text'}\n**Category:** ${category}\n**Channel:** ${targetChannel}\n**Channel Name:** ${targetChannel.name}\n**Counter ID:** \`${newCounter.id}\`\n\nThe counter will automatically update every 15 minutes.\n\nUse \`/serverstats list\` to view all counters.`)]
+            embeds: [successEmbed(`**Contador Creado Exitosamente**\n\n**Type:** ${getCounterTypeLabel(type)}\n**Channel Type:** ${targetChannel.type === ChannelType.GuildVoice ? 'voice' : 'text'}\n**Category:** ${category}\n**Channel:** ${targetChannel}\n**Channel Name:** ${targetChannel.name}\n**Counter ID:** \`${newCounter.id}\`\n\nEl contador se actualizara automaticamente cada quince minutos\n\nUsa \`/serverstats list\` para ver todos los contadores`)]
         }).catch(logger.error);
 
     } catch (error) {
         logger.error("Error creating counter:", error);
-        await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: 'An error occurred while creating the counter. Please try again.' }).catch(logger.error);
+        await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: 'Ocurrio un error al crear el contador Por favor intenta de nuevo' }).catch(logger.error);
     }
 }
