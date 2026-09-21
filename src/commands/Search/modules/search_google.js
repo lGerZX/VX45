@@ -9,10 +9,10 @@ export default {
 
         const embed = createEmbed({
             title: 'Google Search',
-            description: `[Search for "${query}"](${searchUrl})`,
+            description: `[Buscar "${query}"](${searchUrl})`,
             color: 'info'
         })
-        .setFooter({ text: 'Google Search Results' });
+        .setFooter({ text: 'Resultados de Google Search' });
 
         await InteractionHelper.safeReply(interaction, { embeds: [embed] });
 
