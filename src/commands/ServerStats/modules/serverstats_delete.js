@@ -18,7 +18,7 @@ export async function handleDelete(interaction, client) {
     }
 
     if (!interaction.member.permissions.has(PermissionFlagsBits.ManageChannels)) {
-        await replyUserError(interaction, { type: ErrorTypes.PERMISSION, message: 'You need **Manage Channels** permission to delete counters.' }).catch(logger.error);
+        await replyUserError(interaction, { type: ErrorTypes.PERMISSION, message: 'Necesitas el permiso **Manage Channels** para eliminar contadores' }).catch(logger.error);
         return;
     }
 
@@ -26,21 +26,21 @@ export async function handleDelete(interaction, client) {
         const counters = await getServerCounters(client, guild.id);
 
         if (counters.length === 0) {
-            await replyUserError(interaction, { type: ErrorTypes.USER_INPUT, message: 'No counters found to delete.' }).catch(logger.error);
+            await replyUserError(interaction, { type: ErrorTypes.USER_INPUT, message: 'No se encontraron contadores para eliminar' }).catch(logger.error);
             return;
         }
 
         const counterToDelete = counters.find(c => c.id === counterId);
         if (!counterToDelete) {
-            await replyUserError(interaction, { type: ErrorTypes.USER_INPUT, message: `Counter with ID \`${counterId}\` not found. Use \`/serverstats list\` to see all counters.` }).catch(logger.error);
+            await replyUserError(interaction, { type: ErrorTypes.USER_INPUT, message: `No se encontro el contador con ID \`${counterId}\`. Usa \`/serverstats list\` para ver todos los contadores` }).catch(logger.error);
             return;
         }
 
         const channel = guild.channels.cache.get(counterToDelete.channelId);
 
         const embed = createEmbed({
-            title: "Delete Counter & Channel",
-            description: `Are you sure you want to delete this counter and its channel?\n\n**ID:** \`${counterToDelete.id}\`\n**Type:** ${getCounterTypeDisplay(counterToDelete.type)}\n**Channel:** ${channel || 'Deleted Channel'}\n\n **The channel will be permanently deleted!**`,
+            title: "Eliminar Contador y Canal",
+            description: `Estas seguro de que quieres eliminar este contador y su canal\n\n**ID:** \`${counterToDelete.id}\`\n**Type:** ${getCounterTypeDisplay(counterToDelete.type)}\n**Channel:** ${channel || 'Canal eliminado'}\n\n **El canal sera eliminado permanentemente**`,
             color: getColor('error')
         });
 
@@ -59,7 +59,7 @@ export async function handleDelete(interaction, client) {
 
     } catch (error) {
         logger.error("Error in handleDelete:", error);
-        await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: 'An error occurred while fetching counters. Please try again.' }).catch(logger.error);
+        await replyUserError(interaction, { type: ErrorTypes.UNKNOWN, message: 'Ocurrio un error al obtener los contadores Por favor intenta de nuevo' }).catch(logger.error);
     }
 }
 
@@ -71,7 +71,7 @@ export const performDeletionByCounterId = wrapServiceBoundary(async function per
         throw createError(
             'Counter not found',
             ErrorTypes.USER_INPUT,
-            `Counter with ID \`${counterId}\` was not found.`,
+            `No se encontro el contador con ID \`${counterId}\``,
             { guildId: guild.id, counterId, operation: 'performDeletionByCounterId' }
         );
     }
@@ -83,7 +83,7 @@ export const performDeletionByCounterId = wrapServiceBoundary(async function per
         throw createError(
             'Counter delete failed',
             ErrorTypes.DATABASE,
-            'Failed to delete counter. Please try again.',
+            'Fallo al eliminar el contador Por favor intenta de nuevo',
             { guildId: guild.id, counterId, operation: 'performDeletionByCounterId' }
         );
     }
@@ -100,21 +100,21 @@ export const performDeletionByCounterId = wrapServiceBoundary(async function per
         }
     }
 
-    let message = `✅ **Counter Deleted Successfully!**\n\n**ID:** \`${counter.id}\`\n**Type:** ${getCounterTypeDisplay(counter.type)}`;
+    let message = `**Contador Eliminado Exitosamente**\n\n**ID:** \`${counter.id}\`\n**Type:** ${getCounterTypeDisplay(counter.type)}`;
 
     if (channelDeleted) {
-        message += `\n**Channel:** ${channel.name} (deleted)`;
+        message += `\n**Channel:** ${channel.name} (eliminado)`;
     } else if (channel) {
-        message += `\n**Channel:** ${channel.name} (failed to delete)`;
+        message += `\n**Channel:** ${channel.name} (fallo al eliminar)`;
     } else {
-        message += `\n**Channel:** Already deleted`;
+        message += `\n**Channel:** Ya eliminado`;
     }
 
     return { message };
 }, {
     service: 'serverstats',
     operation: 'performDeletionByCounterId',
-    userMessage: 'An error occurred while deleting the counter. Please try again.',
+    userMessage: 'Ocurrio un error al eliminar el contador Por favor intenta de nuevo',
 });
 
 function getCounterTypeDisplay(type) {
