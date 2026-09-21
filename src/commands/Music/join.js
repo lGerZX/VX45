@@ -7,7 +7,7 @@ export default {
     category: 'Music',
     data: new SlashCommandBuilder()
         .setName('join')
-        .setDescription('Join your voice channel without starting playback'),
+        .setDescription('Unirse a tu canal de voz sin iniciar reproduccion'),
 
     async execute(interaction, config, client) {
         const deferred = await deferMusicCommand(interaction);
