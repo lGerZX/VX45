@@ -78,12 +78,12 @@ export async function createInitialHelpMenu(client) {
     const botName = client?.user?.username || "Bot";
     const embed = createEmbed({
         title: `📖 Ayuda de ${botName}`,
-        description: 'Configura,usa y elige que habilitar y deshabiliar los comandos',
+        description: '! AstrxlzzL',
         color: 'primary',
         thumbnail: client.user?.displayAvatarURL?.({ size: 1024 }),
         fields: [
             {
-                name: '🚀 Que desbes hacer?',
+                name: '🚀 Que debes hacer?',
                 value: [
                     '**1 Iniciar configuracion** — Ejecuta `/configwizard` para configurar el prefijo rol de mod y registros',
                     '**2 Habilitar sistemas** — Usa `/commands dashboard` para activar o desactivar categorias',
@@ -92,7 +92,7 @@ export async function createInitialHelpMenu(client) {
                 inline: false,
             },
             {
-                name: 'Apoyo de VX45 & VX73',
+                name: 'Apoyo de VX45',
                 value: [
                     '• Unate al servidor de discord de VX45',
                 ].join('\n'),
@@ -100,7 +100,7 @@ export async function createInitialHelpMenu(client) {
             },
             {
                 name: '\u200B',
-                value: `-# ${botName} DC: https://discord.gg/vx73`,
+                value: `-# ${botName} DC: https://discord.gg/vx45`,
                 inline: false,
             },
         ],
