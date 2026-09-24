@@ -85,8 +85,8 @@ export async function createInitialHelpMenu(client) {
             {
                 name: '🚀 Guiate atraves de:',
                 value: [
-                    '**1 Configuracion** — Ejecuta `/configwizard` para configurar rol,mod,comandos y registros',
-                    '**2 Sistemas** — Usa `/commands dashboard` para activar o desactivar categorias',
+                    '**1 Configuracion** — Ejecuta `/configwizard`',
+                    '**2 Sistemas** — Usa `/commands dashboard`',
                     '**3 Explorar comandos** — Usa el menu de abajo para ver categorias y comandos',
                 ].join('\n'),
                 inline: false,
@@ -94,7 +94,7 @@ export async function createInitialHelpMenu(client) {
             {
                 name: 'Apoyo de VX45',
                 value: [
-                    'Unate al servidor de discord de VX45',
+                    'Unate al servidor de discord',
                 ].join('\n'),
                 inline: false,
             },
@@ -117,7 +117,7 @@ export async function createInitialHelpMenu(client) {
         .setStyle(ButtonStyle.Danger);
 
     const supportButton = new ButtonBuilder()
-        .setLabel("Servidor DC")
+        .setLabel("Servidor VX45")
         .setURL("https://discord.gg/vx45")
         .setStyle(ButtonStyle.Link);
 
