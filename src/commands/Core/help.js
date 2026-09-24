@@ -85,9 +85,8 @@ export async function createInitialHelpMenu(client) {
             {
                 name: '🚀 Guiate atraves de:',
                 value: [
-                    '**1 Configuracion** `/configwizard`',
-                    '**2 Sistemas** `/commands dashboard`',
-                    '**3 Explorar comandos** Usa el menu de abajo para ver categorias y comandos',
+                    '**1 Configuracion:** `/configwizard`',
+                    '**2 Sistemas:** `/commands dashboard`',
                 ].join('\n'),
                 inline: false,
             },
