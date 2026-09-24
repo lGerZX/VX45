@@ -78,16 +78,16 @@ export async function createInitialHelpMenu(client) {
     const botName = client?.user?.username || "Bot";
     const embed = createEmbed({
         title: `📖 Ayuda de ${botName}`,
-        description: 'Testtt',
+        description: 'Como te ayudamos?',
         color: 'primary',
         thumbnail: client.user?.displayAvatarURL?.({ size: 1024 }),
         fields: [
             {
                 name: '🚀 Guiate atraves de:',
                 value: [
-                    '**1 Configuracion** — Ejecuta `/configwizard`',
-                    '**2 Sistemas** — Usa `/commands dashboard`',
-                    '**3 Explorar comandos** — Usa el menu de abajo para ver categorias y comandos',
+                    '**1 Configuracion** `/configwizard`',
+                    '**2 Sistemas** `/commands dashboard`',
+                    '**3 Explorar comandos** Usa el menu de abajo para ver categorias y comandos',
                 ].join('\n'),
                 inline: false,
             },
