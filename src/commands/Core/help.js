@@ -99,7 +99,7 @@ export async function createInitialHelpMenu(client) {
             },
             {
                 name: '\u200B',
-                value: `By ${botName} & AstrxlzzL`,
+                value: `By AstrxlzzL`,
                 inline: false,
             },
         ],
