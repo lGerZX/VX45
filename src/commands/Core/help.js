@@ -142,7 +142,7 @@ export default {
     slashOnly: true,
     data: new SlashCommandBuilder()
         .setName("help")
-        .setDescription("Muestra el menu de ayuda con todos los comandos disponibles"),
+        .setDescription("Muestra el menu de ayuda"),
 
     async execute(interaction, guildConfig, client) {
         
