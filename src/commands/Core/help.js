@@ -94,13 +94,13 @@ export async function createInitialHelpMenu(client) {
             {
                 name: 'Apoyo de VX45',
                 value: [
-                    '• Unate al servidor de discord de VX45',
+                    'Unate al servidor de discord de VX45',
                 ].join('\n'),
                 inline: false,
             },
             {
                 name: '\u200B',
-                value: `-# ${botName} DC: https://discord.gg/vx45`,
+                value: `By -# ${botName} & AstrxlzzL`,
                 inline: false,
             },
         ],
