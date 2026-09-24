@@ -78,15 +78,15 @@ export async function createInitialHelpMenu(client) {
     const botName = client?.user?.username || "Bot";
     const embed = createEmbed({
         title: `📖 Ayuda de ${botName}`,
-        description: '! AstrxlzzL',
+        description: 'Testtt',
         color: 'primary',
         thumbnail: client.user?.displayAvatarURL?.({ size: 1024 }),
         fields: [
             {
-                name: '🚀 Que debes hacer?',
+                name: '🚀 Guiate atraves de:',
                 value: [
-                    '**1 Iniciar configuracion** — Ejecuta `/configwizard` para configurar el prefijo rol de mod y registros',
-                    '**2 Habilitar sistemas** — Usa `/commands dashboard` para activar o desactivar categorias',
+                    '**1 Configuracion** — Ejecuta `/configwizard` para configurar rol,mod,comandos y registros',
+                    '**2 Sistemas** — Usa `/commands dashboard` para activar o desactivar categorias',
                     '**3 Explorar comandos** — Usa el menu de abajo para ver categorias y comandos',
                 ].join('\n'),
                 inline: false,
@@ -100,7 +100,7 @@ export async function createInitialHelpMenu(client) {
             },
             {
                 name: '\u200B',
-                value: `By -# ${botName} & AstrxlzzL`,
+                value: `By ${botName} & AstrxlzzL`,
                 inline: false,
             },
         ],
