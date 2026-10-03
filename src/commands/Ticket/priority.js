@@ -10,18 +10,18 @@ import { updateTicketPriority } from '../../services/ticket.js';
 export default {
     data: new SlashCommandBuilder()
         .setName("priority")
-        .setDescription("Sets the priority level for the current support ticket.")
+        .setDescription("Establece el nivel de prioridad para el ticket de soporte actual")
         .addStringOption((option) =>
             option
                 .setName("level")
-                .setDescription("The priority level for the ticket.")
+                .setDescription("El nivel de prioridad para el ticket")
                 .setRequired(true)
                 .addChoices(
-                    { name: "Urgent", value: "urgent" },
-                    { name: "High", value: "high" },
-                    { name: "Medium", value: "medium" },
-                    { name: "Low", value: "low" },
-                    { name: "None", value: "none" },
+                    { name: "Urgente", value: "urgent" },
+                    { name: "Alta", value: "high" },
+                    { name: "Media", value: "medium" },
+                    { name: "Baja", value: "low" },
+                    { name: "Ninguna", value: "none" },
                 ),
             )
         .setDMPermission(false),
@@ -35,11 +35,11 @@ export default {
 
         const permissionContext = await getTicketPermissionContext({ client, interaction });
         if (!permissionContext.ticketData) {
-            return await replyUserError(interaction, { type: ErrorTypes.VALIDATION, message: 'This command can only be used in a valid ticket channel.' });
+            return await replyUserError(interaction, { type: ErrorTypes.VALIDATION, message: 'Este comando solo puede usarse en un canal de ticket valido' });
         }
 
         if (!permissionContext.canManageTicket) {
-            return await replyUserError(interaction, { type: ErrorTypes.PERMISSION, message: 'You need the `Manage Channels` permission or the configured `Ticket Staff Role` to change ticket priority.' });
+            return await replyUserError(interaction, { type: ErrorTypes.PERMISSION, message: 'Necesitas el permiso `Manage Channels` o el rol configurado `Ticket Staff Role` para cambiar la prioridad del ticket' });
         }
 
         const priorityLevel = interaction.options.getString("level");
@@ -48,8 +48,8 @@ export default {
         await InteractionHelper.safeEditReply(interaction, {
             embeds: [
                 successEmbed(
-                    "Priority Updated",
-                    `Ticket priority set to **${priorityLevel.toUpperCase()}**.`,
+                    "Prioridad actualizada",
+                    `La prioridad del ticket se establecio en **${priorityLevel.toUpperCase()}**`,
                 ),
             ],
         });
