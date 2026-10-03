@@ -137,7 +137,7 @@ export default {
             const dmOnClose = interaction.options.getBoolean("dm_on_close") !== false;
 
             const setupEmbed = createEmbed({ 
-                title: "Tickets de soporte", 
+                title: "! AstrxlzzL", 
                 description: panelMessage,
                 color: getColor('info')
             });
