@@ -66,17 +66,17 @@ export default {
             .setURL(definition.permalink)
             .addFields(
                 {
-                    name: 'Example',
+                    name: 'Ejemplo',
                     value: formattedExample,
                     inline: false
                 },
                 {
-                    name: 'Stats',
+                    name: 'Estadisticas',
                     value: `${definition.thumbs_up.toLocaleString()} • ${definition.thumbs_down.toLocaleString()}`,
                     inline: true
                 },
                 {
-                    name: 'Author',
+                    name: 'Autor',
                     value: definition.author || 'Anonimo',
                     inline: true
                 }
@@ -109,7 +109,7 @@ export default {
             if (error.response?.status === 404 || !error.response) {
                 await replyUserError(interaction, { type: ErrorTypes.USER_INPUT, message: `No se encontraron definiciones para "${interaction.options.getString('term')}" en Urban Dictionary` });
             } else if (error.response?.status === 429) {
-                await replyUserError(interaction, { type: ErrorTypes.RATE_LIMIT, message: 'Demasiadas solicitudes a Urban Dictionary Por favor intenta de nuevo en unos minutos' });
+                await replyUserError(interaction, { type: ErrorTypes.RATE_LIMIT, message: 'Demasiadas solicitudes a Urban Dictionary por favor intenta de nuevo en unos minutos' });
             } else {
                 await handleInteractionError(interaction, error, {
                     commandName: 'urban',
