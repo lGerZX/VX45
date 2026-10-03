@@ -13,37 +13,37 @@ import { replyUserError, ErrorTypes } from '../../utils/errorHandler.js';
 export default {
     data: new SlashCommandBuilder()
         .setName("serverstats")
-        .setDescription("Manage server statistics that track member counts and channel data")
+        .setDescription("Administra estadisticas del servidor que registran conteos de miembros y datos de canales")
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
         .addSubcommand(subcommand =>
             subcommand
                 .setName("create")
-                .setDescription("Create a new statistics tracker channel in a category")
+                .setDescription("Crea un nuevo canal de seguimiento de estadisticas en una categoria")
                 .addStringOption(option =>
                     option
                         .setName("type")
-                        .setDescription("The type of statistics to track")
+                        .setDescription("El tipo de estadisticas a registrar")
                         .setRequired(true)
                         .addChoices(
-                            { name: "members + bots", value: "members" },
-                            { name: "members only", value: "members_only" },
-                            { name: "bots only", value: "bots" }
+                            { name: "miembros + bots", value: "members" },
+                            { name: "solo miembros", value: "members_only" },
+                            { name: "solo bots", value: "bots" }
                         )
                 )
                 .addStringOption(option =>
                     option
                         .setName("channel_type")
-                        .setDescription("The channel type to create for this tracker")
+                        .setDescription("El tipo de canal a crear para este seguimiento")
                         .setRequired(true)
                         .addChoices(
-                            { name: "voice channel (recommended)", value: "voice" },
-                            { name: "text channel", value: "text" }
+                            { name: "canal de voz recomendado", value: "voice" },
+                            { name: "canal de texto", value: "text" }
                         )
                 )
                 .addChannelOption(option =>
                     option
                         .setName("category")
-                        .setDescription("The category where the statistics tracker channel will be created")
+                        .setDescription("La categoria donde se creara el canal de seguimiento de estadisticas")
                         .setRequired(true)
                         .addChannelTypes(ChannelType.GuildCategory)
                 )
@@ -51,38 +51,38 @@ export default {
         .addSubcommand(subcommand =>
             subcommand
                 .setName("list")
-                .setDescription("List all statistics trackers for this server")
+                .setDescription("Muestra todos los seguimientos de estadisticas del servidor")
         )
         .addSubcommand(subcommand =>
             subcommand
                 .setName("update")
-                .setDescription("Update an existing statistics tracker")
+                .setDescription("Actualiza un seguimiento de estadisticas existente")
                 .addStringOption(option =>
                     option
                         .setName("counter-id")
-                        .setDescription("The ID of the tracker to update")
+                        .setDescription("El ID del seguimiento a actualizar")
                         .setRequired(true)
                 )
                 .addStringOption(option =>
                     option
                         .setName("type")
-                        .setDescription("The new tracker type")
+                        .setDescription("El nuevo tipo de seguimiento")
                         .setRequired(false)
                         .addChoices(
-                            { name: "members + bots", value: "members" },
-                            { name: "members only", value: "members_only" },
-                            { name: "bots only", value: "bots" }
+                            { name: "miembros + bots", value: "members" },
+                            { name: "solo miembros", value: "members_only" },
+                            { name: "solo bots", value: "bots" }
                         )
                 )
         )
         .addSubcommand(subcommand =>
             subcommand
                 .setName("delete")
-                .setDescription("Delete an existing statistics tracker")
+                .setDescription("Elimina un seguimiento de estadisticas existente")
                 .addStringOption(option =>
                     option
                         .setName("counter-id")
-                        .setDescription("The ID of the tracker to delete")
+                        .setDescription("El ID del seguimiento a eliminar")
                         .setRequired(true)
                 )
         ),
@@ -104,7 +104,7 @@ export default {
                 await handleDelete(interaction, client);
                 break;
             default:
-                await replyUserError(interaction, { type: ErrorTypes.VALIDATION, message: 'Unknown subcommand.' });
+                await replyUserError(interaction, { type: ErrorTypes.VALIDATION, message: 'Subcomando desconocido' });
         }
     }
 };
