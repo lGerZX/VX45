@@ -6,10 +6,10 @@ import { InteractionHelper } from '../../utils/interactionHelper.js';
 export default {
     data: new SlashCommandBuilder()
         .setName('time')
-        .setDescription('Get the current time in different timezones')
+        .setDescription('Obtiene la hora actual en diferentes zonas horarias')
         .addStringOption(option =>
             option.setName('timezone')
-                .setDescription('The timezone to display (e.g., UTC, America/New_York)')
+                .setDescription('La zona horaria a mostrar (por ejemplo UTC, America/New_York)')
                 .setRequired(false)),
 
     async execute(interaction) {
@@ -32,10 +32,10 @@ export default {
                         timeZoneName: 'short'
                     });
                 } catch (error) {
-                    logger.warn(`Invalid timezone requested: ${timezone}`);
+                    logger.warn(`Zona horaria invalida solicitada: ${timezone}`);
                     await replyUserError(interaction, {
                         type: ErrorTypes.VALIDATION,
-                        message: 'Invalid timezone. Please use a valid timezone identifier (e.g., UTC, America/New_York, Europe/London)',
+                        message: 'Zona horaria invalida. Usa un identificador valido (por ejemplo UTC, America/New_York, Europe/London)',
                     });
                     return;
                 }
@@ -44,7 +44,7 @@ export default {
                 const unixTimestamp = Math.floor(now.getTime() / 1000);
 
                 const embed = successEmbed(
-                    '🕒 Current Time',
+                    '🕒 Hora actual',
                     `**${timezone}:** ${timeString}\n` +
                     `**Unix Timestamp:** \`${unixTimestamp}\`\n` +
                     `**ISO String:** \`${now.toISOString()}\``
@@ -52,7 +52,7 @@ export default {
 
                 await InteractionHelper.safeEditReply(interaction, { embeds: [embed] });
             },
-            'Failed to get current time. Please try again.',
+            'No se pudo obtener la hora actual. Intentalo de nuevo.',
             {
                 autoDefer: true,
                 deferOptions: { flags: MessageFlags.Ephemeral }
